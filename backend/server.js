@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const fs = require('fs');
 const path = require('path');
+const { Pool } = require('pg');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -13,62 +13,74 @@ app.use(express.json());
 // Serve static frontend files
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// Data file paths
-const DATA_DIR = path.join(__dirname, 'data');
-const CUSTOMERS_FILE = path.join(DATA_DIR, 'customers.json');
-const DROPOFFS_FILE = path.join(DATA_DIR, 'dropoffs.json');
-const STAFF_FILE = path.join(DATA_DIR, 'staff.json');
+// PostgreSQL connection
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL || 'postgresql://web20businesscenter_user:pM42fzthbgk86ssmFR4Ilv2nxcNjbrIA@dpg-d5gl59q4d50c73b232h0-a/web20businesscenter',
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
-// Initialize data directory and files
-if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR);
-}
+// Initialize database tables
+async function initializeDatabase() {
+    const client = await pool.connect();
+    try {
+        // Create customers table
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS customers (
+                id SERIAL PRIMARY KEY,
+                first_name VARCHAR(255) NOT NULL,
+                last_name VARCHAR(255) NOT NULL,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                total_dropoffs INTEGER DEFAULT 0,
+                rewards_redeemed INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
 
-// Initialize staff PINs
-if (!fs.existsSync(STAFF_FILE)) {
-    const staffPins = [
-        { id: 1, pin: '1157', name: 'Staff Member 1' },
-        { id: 2, pin: '5600', name: 'Staff Member 2' },
-        { id: 3, pin: '0725', name: 'Staff Member 3' }
-    ];
-    fs.writeFileSync(STAFF_FILE, JSON.stringify(staffPins, null, 2));
-}
+        // Create dropoffs table
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS dropoffs (
+                id SERIAL PRIMARY KEY,
+                customer_id INTEGER REFERENCES customers(id) ON DELETE CASCADE,
+                quantity INTEGER NOT NULL,
+                date DATE NOT NULL,
+                added_by VARCHAR(50),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
 
-// Initialize customers file
-if (!fs.existsSync(CUSTOMERS_FILE)) {
-    fs.writeFileSync(CUSTOMERS_FILE, JSON.stringify([], null, 2));
-}
+        // Create staff table
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS staff (
+                id SERIAL PRIMARY KEY,
+                pin VARCHAR(10) UNIQUE NOT NULL,
+                name VARCHAR(255) NOT NULL
+            )
+        `);
 
-// Initialize dropoffs file
-if (!fs.existsSync(DROPOFFS_FILE)) {
-    fs.writeFileSync(DROPOFFS_FILE, JSON.stringify([], null, 2));
-}
+        // Insert default staff PINs if table is empty
+        const staffCheck = await client.query('SELECT COUNT(*) FROM staff');
+        if (parseInt(staffCheck.rows[0].count) === 0) {
+            await client.query(`
+                INSERT INTO staff (pin, name) VALUES
+                ('1157', 'Staff Member 1'),
+                ('5600', 'Staff Member 2'),
+                ('0725', 'Staff Member 3')
+            `);
+            console.log('Default staff PINs initialized');
+        }
 
-// Helper functions to read/write data
-function readCustomers() {
-    return JSON.parse(fs.readFileSync(CUSTOMERS_FILE, 'utf8'));
-}
-
-function writeCustomers(customers) {
-    fs.writeFileSync(CUSTOMERS_FILE, JSON.stringify(customers, null, 2));
-}
-
-function readDropoffs() {
-    return JSON.parse(fs.readFileSync(DROPOFFS_FILE, 'utf8'));
-}
-
-function writeDropoffs(dropoffs) {
-    fs.writeFileSync(DROPOFFS_FILE, JSON.stringify(dropoffs, null, 2));
-}
-
-function readStaff() {
-    return JSON.parse(fs.readFileSync(STAFF_FILE, 'utf8'));
+        console.log('Database tables initialized successfully');
+    } catch (error) {
+        console.error('Database initialization error:', error);
+    } finally {
+        client.release();
+    }
 }
 
 // API Routes
 
 // Customer registration
-app.post('/api/customers/register', (req, res) => {
+app.post('/api/customers/register', async (req, res) => {
     const { firstName, lastName, email } = req.body;
 
     if (!firstName || !lastName || !email) {
@@ -76,45 +88,41 @@ app.post('/api/customers/register', (req, res) => {
     }
 
     try {
-        const customers = readCustomers();
-
         // Check if customer already exists
-        const existing = customers.find(c => c.email.toLowerCase() === email.toLowerCase());
+        const existing = await pool.query(
+            'SELECT * FROM customers WHERE LOWER(email) = LOWER($1)',
+            [email]
+        );
 
-        if (existing) {
+        if (existing.rows.length > 0) {
             return res.json({
                 success: true,
                 message: 'Welcome back!',
-                customer: existing
+                customer: existing.rows[0]
             });
         }
 
         // Create new customer
-        const newCustomer = {
-            id: customers.length > 0 ? Math.max(...customers.map(c => c.id)) + 1 : 1,
-            first_name: firstName,
-            last_name: lastName,
-            email: email,
-            total_dropoffs: 0,
-            rewards_redeemed: 0,
-            created_at: new Date().toISOString()
-        };
-
-        customers.push(newCustomer);
-        writeCustomers(customers);
+        const result = await pool.query(
+            `INSERT INTO customers (first_name, last_name, email, total_dropoffs, rewards_redeemed)
+             VALUES ($1, $2, $3, 0, 0)
+             RETURNING *`,
+            [firstName, lastName, email]
+        );
 
         res.json({
             success: true,
             message: 'Registration successful!',
-            customer: newCustomer
+            customer: result.rows[0]
         });
     } catch (error) {
+        console.error('Registration error:', error);
         res.status(500).json({ error: 'Registration failed', details: error.message });
     }
 });
 
 // Staff login
-app.post('/api/staff/login', (req, res) => {
+app.post('/api/staff/login', async (req, res) => {
     const { pin } = req.body;
 
     if (!pin) {
@@ -122,24 +130,25 @@ app.post('/api/staff/login', (req, res) => {
     }
 
     try {
-        const staff = readStaff();
-        const staffMember = staff.find(s => s.pin === pin);
+        const result = await pool.query('SELECT * FROM staff WHERE pin = $1', [pin]);
 
-        if (!staffMember) {
+        if (result.rows.length === 0) {
             return res.status(401).json({ error: 'Invalid PIN' });
         }
 
+        const staffMember = result.rows[0];
         res.json({
             success: true,
             staff: { id: staffMember.id, name: staffMember.name, pin: staffMember.pin }
         });
     } catch (error) {
+        console.error('Login error:', error);
         res.status(500).json({ error: 'Login failed', details: error.message });
     }
 });
 
 // Search customers
-app.get('/api/customers/search', (req, res) => {
+app.get('/api/customers/search', async (req, res) => {
     const { query } = req.query;
 
     if (!query) {
@@ -147,102 +156,116 @@ app.get('/api/customers/search', (req, res) => {
     }
 
     try {
-        const customers = readCustomers();
-        const searchLower = query.toLowerCase();
+        const searchPattern = `%${query.toLowerCase()}%`;
+        const result = await pool.query(
+            `SELECT * FROM customers
+             WHERE LOWER(first_name) LIKE $1
+                OR LOWER(last_name) LIKE $1
+                OR LOWER(email) LIKE $1
+                OR LOWER(first_name || ' ' || last_name) LIKE $1
+             ORDER BY last_name, first_name`,
+            [searchPattern]
+        );
 
-        const results = customers.filter(c => {
-            const fullName = `${c.first_name} ${c.last_name}`.toLowerCase();
-            return c.first_name.toLowerCase().includes(searchLower) ||
-                   c.last_name.toLowerCase().includes(searchLower) ||
-                   c.email.toLowerCase().includes(searchLower) ||
-                   fullName.includes(searchLower);
-        }).sort((a, b) => {
-            const aName = `${a.last_name} ${a.first_name}`;
-            const bName = `${b.last_name} ${b.first_name}`;
-            return aName.localeCompare(bName);
-        });
-
-        res.json({ customers: results });
+        res.json({ customers: result.rows });
     } catch (error) {
+        console.error('Search error:', error);
         res.status(500).json({ error: 'Search failed', details: error.message });
     }
 });
 
 // Get customer details with dropoffs
-app.get('/api/customers/:id', (req, res) => {
+app.get('/api/customers/:id', async (req, res) => {
     const { id } = req.params;
 
     try {
-        const customers = readCustomers();
-        const customer = customers.find(c => c.id === parseInt(id));
+        const customerResult = await pool.query(
+            'SELECT * FROM customers WHERE id = $1',
+            [parseInt(id)]
+        );
 
-        if (!customer) {
+        if (customerResult.rows.length === 0) {
             return res.status(404).json({ error: 'Customer not found' });
         }
 
-        const dropoffs = readDropoffs();
-        const customerDropoffs = dropoffs
-            .filter(d => d.customer_id === parseInt(id))
-            .sort((a, b) => new Date(b.date) - new Date(a.date));
+        const dropoffsResult = await pool.query(
+            'SELECT * FROM dropoffs WHERE customer_id = $1 ORDER BY date DESC',
+            [parseInt(id)]
+        );
 
-        res.json({ customer, dropoffs: customerDropoffs });
+        res.json({
+            customer: customerResult.rows[0],
+            dropoffs: dropoffsResult.rows
+        });
     } catch (error) {
+        console.error('Fetch customer error:', error);
         res.status(500).json({ error: 'Failed to fetch customer', details: error.message });
     }
 });
 
 // Add dropoff
-app.post('/api/dropoffs', (req, res) => {
+app.post('/api/dropoffs', async (req, res) => {
     const { customerId, quantity, date, staffPin } = req.body;
 
     if (!customerId || !quantity || !date) {
         return res.status(400).json({ error: 'Customer ID, quantity, and date are required' });
     }
 
+    const client = await pool.connect();
     try {
-        const customers = readCustomers();
-        const customerIndex = customers.findIndex(c => c.id === parseInt(customerId));
+        await client.query('BEGIN');
 
-        if (customerIndex === -1) {
+        // Check if customer exists
+        const customerCheck = await client.query(
+            'SELECT * FROM customers WHERE id = $1',
+            [parseInt(customerId)]
+        );
+
+        if (customerCheck.rows.length === 0) {
+            await client.query('ROLLBACK');
             return res.status(404).json({ error: 'Customer not found' });
         }
 
         // Create dropoff record
-        const dropoffs = readDropoffs();
-        const newDropoff = {
-            id: dropoffs.length > 0 ? Math.max(...dropoffs.map(d => d.id)) + 1 : 1,
-            customer_id: parseInt(customerId),
-            quantity: parseInt(quantity),
-            date: date,
-            added_by: staffPin || 'Unknown',
-            created_at: new Date().toISOString()
-        };
-
-        dropoffs.push(newDropoff);
-        writeDropoffs(dropoffs);
+        await client.query(
+            'INSERT INTO dropoffs (customer_id, quantity, date, added_by) VALUES ($1, $2, $3, $4)',
+            [parseInt(customerId), parseInt(quantity), date, staffPin || 'Unknown']
+        );
 
         // Update customer total dropoffs
-        customers[customerIndex].total_dropoffs += parseInt(quantity);
-        writeCustomers(customers);
+        await client.query(
+            'UPDATE customers SET total_dropoffs = total_dropoffs + $1 WHERE id = $2',
+            [parseInt(quantity), parseInt(customerId)]
+        );
 
-        const updatedCustomer = customers[customerIndex];
+        await client.query('COMMIT');
 
-        // Check if eligible for reward (every 10 dropoffs)
-        const eligibleRewards = Math.floor(updatedCustomer.total_dropoffs / 10) - updatedCustomer.rewards_redeemed;
+        // Get updated customer
+        const updatedCustomer = await client.query(
+            'SELECT * FROM customers WHERE id = $1',
+            [parseInt(customerId)]
+        );
+
+        const customer = updatedCustomer.rows[0];
+        const eligibleRewards = Math.floor(customer.total_dropoffs / 10) - customer.rewards_redeemed;
 
         res.json({
             success: true,
             message: 'Drop-off recorded successfully',
-            customer: updatedCustomer,
+            customer: customer,
             eligibleRewards
         });
     } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Add dropoff error:', error);
         res.status(500).json({ error: 'Failed to add dropoff', details: error.message });
+    } finally {
+        client.release();
     }
 });
 
 // Redeem reward
-app.post('/api/rewards/redeem', (req, res) => {
+app.post('/api/rewards/redeem', async (req, res) => {
     const { customerId } = req.body;
 
     if (!customerId) {
@@ -250,14 +273,16 @@ app.post('/api/rewards/redeem', (req, res) => {
     }
 
     try {
-        const customers = readCustomers();
-        const customerIndex = customers.findIndex(c => c.id === parseInt(customerId));
+        const customerResult = await pool.query(
+            'SELECT * FROM customers WHERE id = $1',
+            [parseInt(customerId)]
+        );
 
-        if (customerIndex === -1) {
+        if (customerResult.rows.length === 0) {
             return res.status(404).json({ error: 'Customer not found' });
         }
 
-        const customer = customers[customerIndex];
+        const customer = customerResult.rows[0];
         const eligibleRewards = Math.floor(customer.total_dropoffs / 10) - customer.rewards_redeemed;
 
         if (eligibleRewards <= 0) {
@@ -265,39 +290,46 @@ app.post('/api/rewards/redeem', (req, res) => {
         }
 
         // Mark reward as redeemed
-        customers[customerIndex].rewards_redeemed += 1;
-        writeCustomers(customers);
+        const updated = await pool.query(
+            'UPDATE customers SET rewards_redeemed = rewards_redeemed + 1 WHERE id = $1 RETURNING *',
+            [parseInt(customerId)]
+        );
 
         res.json({
             success: true,
             message: 'Reward redeemed! 10% discount applied.',
-            customer: customers[customerIndex]
+            customer: updated.rows[0]
         });
     } catch (error) {
+        console.error('Redeem reward error:', error);
         res.status(500).json({ error: 'Failed to redeem reward', details: error.message });
     }
 });
 
 // Get all customers (for staff dashboard)
-app.get('/api/customers', (req, res) => {
+app.get('/api/customers', async (req, res) => {
     try {
-        const customers = readCustomers();
-        const sorted = customers.sort((a, b) => {
-            const aName = `${a.last_name} ${a.first_name}`;
-            const bName = `${b.last_name} ${b.first_name}`;
-            return aName.localeCompare(bName);
-        });
+        const result = await pool.query(
+            'SELECT * FROM customers ORDER BY last_name, first_name'
+        );
 
-        res.json({ customers: sorted });
+        res.json({ customers: result.rows });
     } catch (error) {
+        console.error('Fetch customers error:', error);
         res.status(500).json({ error: 'Failed to fetch customers', details: error.message });
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-    console.log(`\nStaff PINs: 1157, 5600, 0725`);
-    console.log(`\nFrontend available at: http://localhost:${PORT}`);
-    console.log(`Customer registration: http://localhost:${PORT}/index.html`);
-    console.log(`Staff login: http://localhost:${PORT}/staff-login.html`);
+// Initialize database and start server
+initializeDatabase().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+        console.log(`\nStaff PINs: 1157, 5600, 0725`);
+        console.log(`\nFrontend available at: http://localhost:${PORT}`);
+        console.log(`Customer registration: http://localhost:${PORT}/index.html`);
+        console.log(`Staff login: http://localhost:${PORT}/staff-login.html`);
+    });
+}).catch(error => {
+    console.error('Failed to start server:', error);
+    process.exit(1);
 });
