@@ -335,6 +335,37 @@ app.get('/api/customers', async (req, res) => {
     }
 });
 
+// Delete customer
+app.delete('/api/customers/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Check if customer exists
+        const customerCheck = await pool.query(
+            'SELECT * FROM customers WHERE id = $1',
+            [parseInt(id)]
+        );
+
+        if (customerCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Customer not found' });
+        }
+
+        const customer = customerCheck.rows[0];
+
+        // Delete customer (dropoffs will be automatically deleted due to CASCADE)
+        await pool.query('DELETE FROM customers WHERE id = $1', [parseInt(id)]);
+
+        res.json({
+            success: true,
+            message: `Customer ${customer.first_name} ${customer.last_name} has been deleted`,
+            customer: customer
+        });
+    } catch (error) {
+        console.error('Delete customer error:', error);
+        res.status(500).json({ error: 'Failed to delete customer', details: error.message });
+    }
+});
+
 // Initialize database and start server
 initializeDatabase().then(() => {
     app.listen(PORT, () => {

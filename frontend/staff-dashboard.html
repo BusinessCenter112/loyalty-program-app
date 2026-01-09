@@ -242,6 +242,15 @@
             background: #7f8c8d;
         }
 
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
         .reward-banner {
             background: #27ae60;
             color: white;
@@ -370,6 +379,10 @@
                 <button class="btn btn-primary" onclick="addDropoff()">Add Drop-off</button>
                 <button class="btn btn-success" id="redeemBtn" style="display: none;" onclick="redeemReward()">Redeem Reward (10% Off)</button>
                 <button class="btn btn-secondary" onclick="clearSelection()">Cancel</button>
+            </div>
+
+            <div class="form-actions" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                <button class="btn btn-danger" onclick="deleteCustomer()" style="width: 100%;">Delete Customer</button>
             </div>
 
             <div class="dropoff-history" id="dropoffHistory"></div>
@@ -666,6 +679,44 @@
             document.querySelectorAll('.customer-card').forEach(card => {
                 card.classList.remove('selected');
             });
+        }
+
+        async function deleteCustomer() {
+            if (!selectedCustomer) {
+                alert('Please select a customer first');
+                return;
+            }
+
+            const customerName = `${selectedCustomer.first_name} ${selectedCustomer.last_name}`;
+
+            if (!confirm(`Are you sure you want to delete ${customerName}?\n\nThis will permanently remove their account and all drop-off history. This action cannot be undone.`)) {
+                return;
+            }
+
+            // Extra confirmation for safety
+            if (!confirm(`Final confirmation: Delete ${customerName}?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/customers/${selectedCustomer.id}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(`Customer ${customerName} has been deleted successfully.`);
+
+                    // Clear selection and refresh search
+                    clearSelection();
+                    searchCustomers();
+                } else {
+                    alert(data.error || 'Failed to delete customer');
+                }
+            } catch (error) {
+                alert('Unable to delete customer. Please try again.');
+            }
         }
 
         function logout() {
