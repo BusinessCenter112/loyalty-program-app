@@ -88,10 +88,13 @@ app.post('/api/customers/register', async (req, res) => {
     }
 
     try {
-        // Check if customer already exists
+        // Check if customer already exists (must match first name, last name, AND email)
         const existing = await pool.query(
-            'SELECT * FROM customers WHERE LOWER(email) = LOWER($1)',
-            [email]
+            `SELECT * FROM customers
+             WHERE LOWER(first_name) = LOWER($1)
+             AND LOWER(last_name) = LOWER($2)
+             AND LOWER(email) = LOWER($3)`,
+            [firstName, lastName, email]
         );
 
         if (existing.rows.length > 0) {
