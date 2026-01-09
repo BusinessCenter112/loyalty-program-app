@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code - Web 2.0 Business Center</title>
+    <style>
+        @media print {
+            .no-print { display: none; }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #f5f5f5;
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            max-width: 600px;
+        }
+
+        h1 {
+            color: #4169E1;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 18px;
+        }
+
+        .qr-code {
+            margin: 30px 0;
+            padding: 20px;
+            background: white;
+            border: 3px solid #4169E1;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .qr-code img {
+            width: 400px;
+            height: 400px;
+            display: block;
+        }
+
+        .instructions {
+            color: #333;
+            font-size: 24px;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+
+        .steps {
+            color: #666;
+            margin-top: 15px;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        .button {
+            background: #4169E1;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        .button:hover {
+            background: #1E3A8A;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Web 2.0 Business Center<br>Rewards Club</h1>
+        <p class="subtitle">Scan to Join Our Package Drop-Off Loyalty Program</p>
+
+        <div class="qr-code">
+            <img src="loyalty-qr-code.png" alt="Loyalty Program QR Code">
+        </div>
+
+        <p class="instructions">📱 Scan with Your Phone</p>
+        <div class="steps">
+            1. Open your phone's camera<br>
+            2. Point it at the QR code<br>
+            3. Tap the notification to register<br>
+            4. Earn rewards with every drop-off!
+        </div>
+
+        <div class="no-print" style="margin-top: 30px;">
+            <button class="button" onclick="window.print()">🖨️ Print This Page</button>
+            <button class="button" onclick="window.open('loyalty-qr-code.png')">💾 Download QR Code</button>
+        </div>
+    </div>
+</body>
+</html>

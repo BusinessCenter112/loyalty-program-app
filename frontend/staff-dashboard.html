@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+        }
+
+        .header .staff-info {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .search-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .search-box input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .search-box button {
+            padding: 12px 30px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .search-box button:hover {
+            background: #2980b9;
+        }
+
+        .results-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .customer-list {
+            margin-top: 20px;
+        }
+
+        .customer-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .customer-card:hover {
+            border-color: #3498db;
+            background: #f8f9fa;
+        }
+
+        .customer-card.selected {
+            border-color: #3498db;
+            background: #e3f2fd;
+        }
+
+        .customer-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .customer-email {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .customer-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: #3498db;
+        }
+
+        .dropoff-form {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .dropoff-form.show {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .reward-banner {
+            background: #27ae60;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+
+        .reward-banner.show {
+            display: block;
+        }
+
+        .dropoff-history {
+            margin-top: 20px;
+        }
+
+        .dropoff-history h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .dropoff-item {
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+
+        .dropoff-item .date {
+            color: #666;
+        }
+
+        .dropoff-item .quantity {
+            font-weight: 600;
+            color: #3498db;
+        }
+
+        .no-results {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+            display: none;
+        }
+
+        .no-results.show {
+            display: block;
+        }
+
+        .success-message {
+            background: #27ae60;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .customer-stats {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>Staff Dashboard</h1>
+            <div class="staff-info" id="staffInfo"></div>
+        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="search-section">
+        <h2 style="margin-bottom: 15px;">Search Customer</h2>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search by name or email...">
+            <button onclick="searchCustomers()">Search</button>
+        </div>
+    </div>
+
+    <div class="results-section">
+        <div class="success-message" id="successMessage"></div>
+
+        <div id="customerDetail" class="dropoff-form">
+            <h3 style="margin-bottom: 15px;">Add Drop-off</h3>
+
+            <div class="reward-banner" id="rewardBanner"></div>
+
+            <div class="form-group">
+                <label for="quantity">Quantity</label>
+                <input type="number" id="quantity" min="1" value="1">
+            </div>
+
+            <div class="form-group">
+                <label for="date">Date</label>
+                <input type="date" id="date">
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-primary" onclick="addDropoff()">Add Drop-off</button>
+                <button class="btn btn-success" id="redeemBtn" style="display: none;" onclick="redeemReward()">Redeem Reward (10% Off)</button>
+                <button class="btn btn-secondary" onclick="clearSelection()">Cancel</button>
+            </div>
+
+            <div class="dropoff-history" id="dropoffHistory"></div>
+        </div>
+
+        <div class="customer-list" id="customerList"></div>
+        <div class="no-results" id="noResults">No customers found. Try a different search.</div>
+    </div>
+
+    <script>
+        // Dynamic API URL - works locally and in production
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+            ? 'http://localhost:3001/api'
+            : '/api';
+        let selectedCustomer = null;
+
+        // Check if staff is logged in
+        window.onload = function() {
+            const staffPin = sessionStorage.getItem('staffPin');
+            const staffName = sessionStorage.getItem('staffName');
+
+            if (!staffPin) {
+                window.location.href = 'staff-login.html';
+                return;
+            }
+
+            document.getElementById('staffInfo').textContent = `Logged in as ${staffName} (PIN: ${staffPin})`;
+
+            // Set today's date as default
+            document.getElementById('date').valueAsDate = new Date();
+
+            // Search on Enter key
+            document.getElementById('searchInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    searchCustomers();
+                }
+            });
+        };
+
+        async function searchCustomers() {
+            const query = document.getElementById('searchInput').value.trim();
+
+            if (!query) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/customers/search?query=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                displayCustomers(data.customers);
+            } catch (error) {
+                alert('Failed to search customers. Please try again.');
+            }
+        }
+
+        function displayCustomers(customers) {
+            const customerList = document.getElementById('customerList');
+            const noResults = document.getElementById('noResults');
+
+            customerList.innerHTML = '';
+
+            if (customers.length === 0) {
+                noResults.classList.add('show');
+                return;
+            }
+
+            noResults.classList.remove('show');
+
+            customers.forEach(customer => {
+                const card = document.createElement('div');
+                card.className = 'customer-card';
+                card.onclick = () => selectCustomer(customer);
+
+                const eligibleRewards = Math.floor(customer.total_dropoffs / 10) - customer.rewards_redeemed;
+                const dropoffsUntilReward = 10 - (customer.total_dropoffs % 10);
+
+                card.innerHTML = `
+                    <div class="customer-name">${customer.first_name} ${customer.last_name}</div>
+                    <div class="customer-email">${customer.email}</div>
+                    <div class="customer-stats">
+                        <div class="stat">
+                            <span class="stat-label">Drop-offs:</span>
+                            <span class="stat-value">${customer.total_dropoffs}</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Rewards Available:</span>
+                            <span class="stat-value">${eligibleRewards}</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Until Next Reward:</span>
+                            <span class="stat-value">${dropoffsUntilReward}</span>
+                        </div>
+                    </div>
+                `;
+
+                customerList.appendChild(card);
+            });
+        }
+
+        async function selectCustomer(customer) {
+            selectedCustomer = customer;
+
+            // Highlight selected card
+            document.querySelectorAll('.customer-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+
+            // Show dropoff form
+            document.getElementById('customerDetail').classList.add('show');
+
+            // Check for available rewards
+            const eligibleRewards = Math.floor(customer.total_dropoffs / 10) - customer.rewards_redeemed;
+
+            if (eligibleRewards > 0) {
+                document.getElementById('rewardBanner').textContent =
+                    `🎉 This customer has ${eligibleRewards} reward(s) available for redemption!`;
+                document.getElementById('rewardBanner').classList.add('show');
+                document.getElementById('redeemBtn').style.display = 'block';
+            } else {
+                document.getElementById('rewardBanner').classList.remove('show');
+                document.getElementById('redeemBtn').style.display = 'none';
+            }
+
+            // Load dropoff history
+            await loadDropoffHistory(customer.id);
+        }
+
+        async function loadDropoffHistory(customerId) {
+            try {
+                const response = await fetch(`${API_URL}/customers/${customerId}`);
+                const data = await response.json();
+
+                const historyDiv = document.getElementById('dropoffHistory');
+
+                if (data.dropoffs.length === 0) {
+                    historyDiv.innerHTML = '<h3>Drop-off History</h3><p style="color: #666;">No drop-offs recorded yet.</p>';
+                    return;
+                }
+
+                let historyHTML = '<h3>Drop-off History</h3>';
+                data.dropoffs.forEach(dropoff => {
+                    historyHTML += `
+                        <div class="dropoff-item">
+                            <span class="date">${dropoff.date}</span>
+                            <span class="quantity">Qty: ${dropoff.quantity}</span>
+                        </div>
+                    `;
+                });
+
+                historyDiv.innerHTML = historyHTML;
+            } catch (error) {
+                console.error('Failed to load history:', error);
+            }
+        }
+
+        async function addDropoff() {
+            if (!selectedCustomer) {
+                alert('Please select a customer first');
+                return;
+            }
+
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const date = document.getElementById('date').value;
+            const staffPin = sessionStorage.getItem('staffPin');
+
+            if (!quantity || !date) {
+                alert('Please enter quantity and date');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/dropoffs`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        customerId: selectedCustomer.id,
+                        quantity: quantity,
+                        date: date,
+                        staffPin: staffPin
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Show success message
+                    const successMsg = document.getElementById('successMessage');
+                    successMsg.textContent = `Drop-off added successfully! Total: ${data.customer.total_dropoffs}`;
+                    successMsg.classList.add('show');
+
+                    setTimeout(() => {
+                        successMsg.classList.remove('show');
+                    }, 3000);
+
+                    // Update selected customer
+                    selectedCustomer = data.customer;
+
+                    // Reload dropoff history
+                    await loadDropoffHistory(selectedCustomer.id);
+
+                    // Update reward banner
+                    if (data.eligibleRewards > 0) {
+                        document.getElementById('rewardBanner').textContent =
+                            `🎉 This customer has ${data.eligibleRewards} reward(s) available for redemption!`;
+                        document.getElementById('rewardBanner').classList.add('show');
+                        document.getElementById('redeemBtn').style.display = 'block';
+                    }
+
+                    // Reset form
+                    document.getElementById('quantity').value = 1;
+
+                    // Refresh search results
+                    searchCustomers();
+                } else {
+                    alert(data.error || 'Failed to add dropoff');
+                }
+            } catch (error) {
+                alert('Unable to add dropoff. Please try again.');
+            }
+        }
+
+        async function redeemReward() {
+            if (!selectedCustomer) {
+                return;
+            }
+
+            if (!confirm('Redeem 10% off reward for this customer?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/rewards/redeem`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        customerId: selectedCustomer.id
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('Reward redeemed successfully! 10% discount applied.');
+
+                    // Update customer
+                    selectedCustomer = data.customer;
+
+                    // Hide reward banner if no more rewards
+                    const eligibleRewards = Math.floor(selectedCustomer.total_dropoffs / 10) - selectedCustomer.rewards_redeemed;
+
+                    if (eligibleRewards === 0) {
+                        document.getElementById('rewardBanner').classList.remove('show');
+                        document.getElementById('redeemBtn').style.display = 'none';
+                    } else {
+                        document.getElementById('rewardBanner').textContent =
+                            `🎉 This customer has ${eligibleRewards} reward(s) available for redemption!`;
+                    }
+
+                    // Refresh search results
+                    searchCustomers();
+                } else {
+                    alert(data.error || 'Failed to redeem reward');
+                }
+            } catch (error) {
+                alert('Unable to redeem reward. Please try again.');
+            }
+        }
+
+        function clearSelection() {
+            selectedCustomer = null;
+            document.getElementById('customerDetail').classList.remove('show');
+            document.querySelectorAll('.customer-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'staff-login.html';
+        }
+    </script>
+</body>
+</html>

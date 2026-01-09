@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: web20-rewards-club
+    env: node
+    region: oregon
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
