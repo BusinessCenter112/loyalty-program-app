@@ -343,7 +343,7 @@
     <div class="search-section">
         <h2 style="margin-bottom: 15px;">Search Customer</h2>
         <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Search by name or email...">
+            <input type="text" id="searchInput" placeholder="Start typing to search...">
             <button onclick="searchCustomers()">Search</button>
         </div>
     </div>
@@ -385,6 +385,7 @@
             ? 'http://localhost:3001/api'
             : '/api';
         let selectedCustomer = null;
+        let searchTimeout = null;
 
         // Check if staff is logged in
         window.onload = function() {
@@ -401,23 +402,38 @@
             // Set today's date as default
             document.getElementById('date').valueAsDate = new Date();
 
+            // Live search as you type (with debounce)
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    searchCustomers();
+                }, 300); // Wait 300ms after user stops typing
+            });
+
             // Search on Enter key
             document.getElementById('searchInput').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
+                    clearTimeout(searchTimeout);
                     searchCustomers();
                 }
             });
+
+            // Load all customers on page load
+            searchCustomers();
         };
 
         async function searchCustomers() {
             const query = document.getElementById('searchInput').value.trim();
 
-            if (!query) {
-                return;
-            }
-
             try {
-                const response = await fetch(`${API_URL}/customers/search?query=${encodeURIComponent(query)}`);
+                let response;
+                if (!query) {
+                    // If no search query, show all customers
+                    response = await fetch(`${API_URL}/customers`);
+                } else {
+                    // If there's a query, search
+                    response = await fetch(`${API_URL}/customers/search?query=${encodeURIComponent(query)}`);
+                }
                 const data = await response.json();
 
                 displayCustomers(data.customers);

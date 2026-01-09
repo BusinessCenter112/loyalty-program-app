@@ -150,11 +150,13 @@ app.get('/api/customers/search', (req, res) => {
         const customers = readCustomers();
         const searchLower = query.toLowerCase();
 
-        const results = customers.filter(c =>
-            c.first_name.toLowerCase().includes(searchLower) ||
-            c.last_name.toLowerCase().includes(searchLower) ||
-            c.email.toLowerCase().includes(searchLower)
-        ).sort((a, b) => {
+        const results = customers.filter(c => {
+            const fullName = `${c.first_name} ${c.last_name}`.toLowerCase();
+            return c.first_name.toLowerCase().includes(searchLower) ||
+                   c.last_name.toLowerCase().includes(searchLower) ||
+                   c.email.toLowerCase().includes(searchLower) ||
+                   fullName.includes(searchLower);
+        }).sort((a, b) => {
             const aName = `${a.last_name} ${a.first_name}`;
             const bName = `${b.last_name} ${b.first_name}`;
             return aName.localeCompare(bName);
