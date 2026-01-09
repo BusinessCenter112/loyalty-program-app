@@ -29,12 +29,24 @@ async function initializeDatabase() {
                 id SERIAL PRIMARY KEY,
                 first_name VARCHAR(255) NOT NULL,
                 last_name VARCHAR(255) NOT NULL,
-                email VARCHAR(255) UNIQUE NOT NULL,
+                email VARCHAR(255) NOT NULL,
                 total_dropoffs INTEGER DEFAULT 0,
                 rewards_redeemed INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
+
+        // Remove UNIQUE constraint from email if it exists
+        // This allows same email with different name combinations
+        try {
+            await client.query(`
+                ALTER TABLE customers DROP CONSTRAINT IF EXISTS customers_email_key
+            `);
+            console.log('Email UNIQUE constraint removed (allows same email with different names)');
+        } catch (error) {
+            // Constraint might not exist, ignore error
+            console.log('No email constraint to remove or already removed');
+        }
 
         // Create dropoffs table
         await client.query(`
