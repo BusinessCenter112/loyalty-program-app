@@ -325,8 +325,9 @@
 
         let currentCustomer = null;
         let currentPhone = '';
+        let lastDropoffCustomerId = null;
         let lastDropoffTime = 0;
-        const DROPOFF_COOLDOWN = 5000; // 5 seconds cooldown
+        const DROPOFF_COOLDOWN = 5000; // 5 seconds cooldown per customer
 
         // Screen management
         function showScreen(screenId) {
@@ -384,10 +385,12 @@
         document.getElementById('logDropoffBtn').addEventListener('click', async () => {
             if (!currentCustomer) return;
 
-            // Check cooldown to prevent double-taps
+            // Check cooldown to prevent double-taps (only for the same customer)
             const now = Date.now();
             const timeSinceLastDropoff = now - lastDropoffTime;
-            if (timeSinceLastDropoff < DROPOFF_COOLDOWN) {
+            const isSameCustomer = lastDropoffCustomerId === currentCustomer.id;
+
+            if (isSameCustomer && timeSinceLastDropoff < DROPOFF_COOLDOWN) {
                 const remainingSeconds = Math.ceil((DROPOFF_COOLDOWN - timeSinceLastDropoff) / 1000);
                 showError('phoneError', `Please wait ${remainingSeconds} seconds before logging another drop-off`);
                 return;
@@ -414,6 +417,7 @@
                 if (response.ok) {
                     const data = await response.json();
                     lastDropoffTime = Date.now(); // Update last dropoff time
+                    lastDropoffCustomerId = currentCustomer.id; // Track which customer
                     displaySuccess(data.customer, data.eligibleRewards);
                     showScreen('successScreen');
                 } else {
@@ -561,7 +565,8 @@
         function resetToStart() {
             currentCustomer = null;
             currentPhone = '';
-            lastDropoffTime = 0; // Reset cooldown for next customer
+            // Don't reset lastDropoffTime or lastDropoffCustomerId
+            // This allows cooldown to work even if same customer tries again
             document.getElementById('phoneInput').value = '';
             document.getElementById('firstName').value = '';
             document.getElementById('lastName').value = '';
