@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Your Drop-off - Web 2.0 Rewards</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        input[type="tel"],
+        input[type="text"],
+        input[type="email"] {
+            width: 100%;
+            padding: 18px;
+            font-size: 20px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+            text-align: center;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102,126,234,0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: #6c757d;
+            font-size: 16px;
+            padding: 12px;
+        }
+
+        .customer-info {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .customer-name {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #e9ecef;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s ease;
+        }
+
+        .reward-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .success-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .error-message {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            color: #666;
+            margin-bottom: 5px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .info-text {
+            color: #666;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Phone Entry Screen -->
+        <div id="phoneScreen" class="screen active">
+            <div class="logo">📦</div>
+            <h1>Log Your Drop-off</h1>
+            <p class="subtitle">Enter your phone number to get started</p>
+
+            <input type="tel" id="phoneInput" placeholder="(555) 123-4567" autocomplete="tel" inputmode="numeric" pattern="[0-9]*">
+            <button id="phoneSubmit">Continue</button>
+
+            <div id="phoneError" class="error-message" style="display: none;"></div>
+        </div>
+
+        <!-- Customer Found Screen -->
+        <div id="customerScreen" class="screen">
+            <div class="logo">👋</div>
+            <div class="customer-info">
+                <div class="customer-name" id="customerName"></div>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-number" id="totalDropoffs">0</div>
+                        <div class="stat-label">Total Drop-offs</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number" id="rewardsEarned">0</div>
+                        <div class="stat-label">Rewards Available</div>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div id="progressText" class="info-text"></div>
+            </div>
+
+            <button id="logDropoffBtn">Log Drop-off</button>
+            <button class="secondary" id="backFromCustomer">Cancel</button>
+        </div>
+
+        <!-- Registration Screen -->
+        <div id="registerScreen" class="screen">
+            <div class="logo">📝</div>
+            <h1>New Customer</h1>
+            <p class="subtitle">Let's get you registered!</p>
+
+            <div class="form-group">
+                <label>First Name</label>
+                <input type="text" id="firstName" placeholder="John">
+            </div>
+
+            <div class="form-group">
+                <label>Last Name</label>
+                <input type="text" id="lastName" placeholder="Smith">
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="email" placeholder="john@example.com">
+            </div>
+
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" id="registerPhone" placeholder="(555) 123-4567" readonly inputmode="numeric" pattern="[0-9]*">
+            </div>
+
+            <button id="registerSubmit">Register & Log Drop-off</button>
+            <button class="secondary" id="backFromRegister">Cancel</button>
+
+            <div id="registerError" class="error-message" style="display: none;"></div>
+        </div>
+
+        <!-- Success Screen -->
+        <div id="successScreen" class="screen">
+            <div class="success-icon">✅</div>
+            <h1>Drop-off Logged!</h1>
+
+            <div class="customer-info">
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-number" id="successDropoffs">0</div>
+                        <div class="stat-label">Total Drop-offs</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number" id="successRewards">0</div>
+                        <div class="stat-label">Rewards Available</div>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="successProgressFill"></div>
+                </div>
+                <div id="successProgressText" class="info-text"></div>
+                <div id="rewardBadge" style="display: none;">
+                    <div class="reward-badge">🎉 You earned a reward!</div>
+                </div>
+            </div>
+
+            <button id="doneBtn">Done</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.hostname === 'localhost'
+            ? 'http://localhost:3001'
+            : 'https://loyalty-program-app-xb1v.onrender.com';
+
+        let currentCustomer = null;
+        let currentPhone = '';
+
+        // Screen management
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // Format phone number as user types
+        document.getElementById('phoneInput').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 10) value = value.slice(0, 10);
+
+            if (value.length >= 6) {
+                e.target.value = `(${value.slice(0,3)}) ${value.slice(3,6)}-${value.slice(6)}`;
+            } else if (value.length >= 3) {
+                e.target.value = `(${value.slice(0,3)}) ${value.slice(3)}`;
+            } else {
+                e.target.value = value;
+            }
+        });
+
+        // Phone submission
+        document.getElementById('phoneSubmit').addEventListener('click', async () => {
+            const phoneInput = document.getElementById('phoneInput');
+            const phone = phoneInput.value.replace(/\D/g, '');
+
+            if (phone.length < 10) {
+                showError('phoneError', 'Please enter a valid 10-digit phone number');
+                return;
+            }
+
+            currentPhone = phone;
+
+            try {
+                const response = await fetch(`${API_URL}/api/customers/phone/${phone}`);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentCustomer = data.customer;
+                    displayCustomer(data.customer, data.eligibleRewards);
+                    showScreen('customerScreen');
+                } else if (response.status === 404) {
+                    // New customer - show registration
+                    document.getElementById('registerPhone').value = phoneInput.value;
+                    showScreen('registerScreen');
+                } else {
+                    showError('phoneError', 'Error looking up phone number');
+                }
+            } catch (error) {
+                showError('phoneError', 'Connection error. Please try again.');
+            }
+        });
+
+        // Log drop-off
+        document.getElementById('logDropoffBtn').addEventListener('click', async () => {
+            if (!currentCustomer) return;
+
+            const button = document.getElementById('logDropoffBtn');
+            const originalText = button.textContent;
+            button.innerHTML = '<span class="loading"></span>';
+            button.disabled = true;
+
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const response = await fetch(`${API_URL}/api/dropoffs`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        customerId: currentCustomer.id,
+                        quantity: 1,
+                        date: today,
+                        staffPin: 'KIOSK'
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displaySuccess(data.customer, data.eligibleRewards);
+                    showScreen('successScreen');
+                } else {
+                    showError('phoneError', 'Failed to log drop-off');
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }
+            } catch (error) {
+                showError('phoneError', 'Connection error. Please try again.');
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        });
+
+        // Registration
+        document.getElementById('registerSubmit').addEventListener('click', async () => {
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const email = document.getElementById('email').value.trim();
+
+            if (!firstName || !lastName || !email) {
+                showError('registerError', 'Please fill in all fields');
+                return;
+            }
+
+            if (!email.includes('@')) {
+                showError('registerError', 'Please enter a valid email address');
+                return;
+            }
+
+            const button = document.getElementById('registerSubmit');
+            const originalText = button.textContent;
+            button.innerHTML = '<span class="loading"></span>';
+            button.disabled = true;
+
+            try {
+                // Register customer
+                const response = await fetch(`${API_URL}/api/customers/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        firstName,
+                        lastName,
+                        email,
+                        phoneNumber: currentPhone
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentCustomer = data.customer;
+
+                    // Immediately log their first drop-off
+                    const today = new Date().toISOString().split('T')[0];
+                    const dropoffResponse = await fetch(`${API_URL}/api/dropoffs`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            customerId: currentCustomer.id,
+                            quantity: 1,
+                            date: today,
+                            staffPin: 'KIOSK'
+                        })
+                    });
+
+                    if (dropoffResponse.ok) {
+                        const dropoffData = await dropoffResponse.json();
+                        displaySuccess(dropoffData.customer, dropoffData.eligibleRewards);
+                        showScreen('successScreen');
+                    }
+                } else {
+                    showError('registerError', 'Registration failed. Please try again.');
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }
+            } catch (error) {
+                showError('registerError', 'Connection error. Please try again.');
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        });
+
+        // Back buttons
+        document.getElementById('backFromCustomer').addEventListener('click', () => {
+            resetToStart();
+        });
+
+        document.getElementById('backFromRegister').addEventListener('click', () => {
+            resetToStart();
+        });
+
+        document.getElementById('doneBtn').addEventListener('click', () => {
+            resetToStart();
+        });
+
+        // Helper functions
+        function displayCustomer(customer, eligibleRewards) {
+            document.getElementById('customerName').textContent =
+                `${customer.first_name} ${customer.last_name}`;
+            document.getElementById('totalDropoffs').textContent = customer.total_dropoffs;
+            document.getElementById('rewardsEarned').textContent = eligibleRewards;
+
+            updateProgress('progress', customer.total_dropoffs, eligibleRewards);
+        }
+
+        function displaySuccess(customer, eligibleRewards) {
+            document.getElementById('successDropoffs').textContent = customer.total_dropoffs;
+            document.getElementById('successRewards').textContent = eligibleRewards;
+
+            updateProgress('successProgress', customer.total_dropoffs, eligibleRewards);
+
+            // Show reward badge if they just earned a reward
+            const dropsToNext = 10 - (customer.total_dropoffs % 10);
+            if (dropsToNext === 10) {
+                document.getElementById('rewardBadge').style.display = 'block';
+            } else {
+                document.getElementById('rewardBadge').style.display = 'none';
+            }
+        }
+
+        function updateProgress(prefix, totalDropoffs, eligibleRewards) {
+            const dropsToNext = 10 - (totalDropoffs % 10);
+            const progressPercent = ((totalDropoffs % 10) / 10) * 100;
+
+            document.getElementById(`${prefix}Fill`).style.width = `${progressPercent}%`;
+
+            if (dropsToNext === 10) {
+                document.getElementById(`${prefix}Text`).textContent =
+                    '🎉 You have rewards available!';
+            } else {
+                document.getElementById(`${prefix}Text`).textContent =
+                    `${dropsToNext} more drop-off${dropsToNext > 1 ? 's' : ''} until your next reward!`;
+            }
+        }
+
+        function showError(elementId, message) {
+            const errorDiv = document.getElementById(elementId);
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function resetToStart() {
+            currentCustomer = null;
+            currentPhone = '';
+            document.getElementById('phoneInput').value = '';
+            document.getElementById('firstName').value = '';
+            document.getElementById('lastName').value = '';
+            document.getElementById('email').value = '';
+            showScreen('phoneScreen');
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('phoneInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('phoneSubmit').click();
+        });
+    </script>
+</body>
+</html>

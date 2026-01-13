@@ -30,11 +30,22 @@ async function initializeDatabase() {
                 first_name VARCHAR(255) NOT NULL,
                 last_name VARCHAR(255) NOT NULL,
                 email VARCHAR(255) NOT NULL,
+                phone_number VARCHAR(20),
                 total_dropoffs INTEGER DEFAULT 0,
                 rewards_redeemed INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
+
+        // Add phone_number column if it doesn't exist (for existing databases)
+        try {
+            await client.query(`
+                ALTER TABLE customers ADD COLUMN IF NOT EXISTS phone_number VARCHAR(20)
+            `);
+            console.log('Phone number column added/verified');
+        } catch (error) {
+            console.log('Phone number column already exists or error:', error.message);
+        }
 
         // Remove UNIQUE constraint from email if it exists
         // This allows same email with different name combinations
@@ -93,13 +104,32 @@ async function initializeDatabase() {
 
 // Customer registration
 app.post('/api/customers/register', async (req, res) => {
-    const { firstName, lastName, email } = req.body;
+    const { firstName, lastName, email, phoneNumber } = req.body;
 
-    if (!firstName || !lastName || !email) {
+    if (!firstName || !lastName || !email || !phoneNumber) {
         return res.status(400).json({ error: 'All fields are required' });
     }
 
+    // Validate phone number format (should be 10 digits)
+    const cleanPhone = phoneNumber.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+        return res.status(400).json({ error: 'Phone number must be 10 digits' });
+    }
+
     try {
+        // Check if customer already exists by phone
+        const phoneCheck = await pool.query(
+            'SELECT * FROM customers WHERE phone_number = $1',
+            [cleanPhone]
+        );
+        if (phoneCheck.rows.length > 0) {
+            return res.json({
+                success: true,
+                message: 'Welcome back!',
+                customer: phoneCheck.rows[0]
+            });
+        }
+
         // Check if customer already exists (must match first name, last name, AND email)
         const existing = await pool.query(
             `SELECT * FROM customers
@@ -110,6 +140,14 @@ app.post('/api/customers/register', async (req, res) => {
         );
 
         if (existing.rows.length > 0) {
+            // Update phone number if not already set
+            if (!existing.rows[0].phone_number) {
+                await pool.query(
+                    'UPDATE customers SET phone_number = $1 WHERE id = $2',
+                    [cleanPhone, existing.rows[0].id]
+                );
+                existing.rows[0].phone_number = cleanPhone;
+            }
             return res.json({
                 success: true,
                 message: 'Welcome back!',
@@ -119,10 +157,10 @@ app.post('/api/customers/register', async (req, res) => {
 
         // Create new customer
         const result = await pool.query(
-            `INSERT INTO customers (first_name, last_name, email, total_dropoffs, rewards_redeemed)
-             VALUES ($1, $2, $3, 0, 0)
+            `INSERT INTO customers (first_name, last_name, email, phone_number, total_dropoffs, rewards_redeemed)
+             VALUES ($1, $2, $3, $4, 0, 0)
              RETURNING *`,
-            [firstName, lastName, email]
+            [firstName, lastName, email, cleanPhone]
         );
 
         res.json({
@@ -186,6 +224,38 @@ app.get('/api/customers/search', async (req, res) => {
     } catch (error) {
         console.error('Search error:', error);
         res.status(500).json({ error: 'Search failed', details: error.message });
+    }
+});
+
+// Look up customer by phone number
+app.get('/api/customers/phone/:phone', async (req, res) => {
+    const { phone } = req.params;
+
+    if (!phone) {
+        return res.status(400).json({ error: 'Phone number is required' });
+    }
+
+    try {
+        const result = await pool.query(
+            'SELECT * FROM customers WHERE phone_number = $1',
+            [phone]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Customer not found' });
+        }
+
+        const customer = result.rows[0];
+        const eligibleRewards = Math.floor(customer.total_dropoffs / 10) - customer.rewards_redeemed;
+
+        res.json({
+            success: true,
+            customer: customer,
+            eligibleRewards
+        });
+    } catch (error) {
+        console.error('Phone lookup error:', error);
+        res.status(500).json({ error: 'Phone lookup failed', details: error.message });
     }
 });
 
