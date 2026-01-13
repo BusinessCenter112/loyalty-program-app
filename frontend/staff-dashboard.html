@@ -361,9 +361,20 @@
         <div class="success-message" id="successMessage"></div>
 
         <div id="customerDetail" class="dropoff-form">
-            <h3 style="margin-bottom: 15px;">Add Drop-off</h3>
+            <h3 style="margin-bottom: 15px;">Customer Information</h3>
 
             <div class="reward-banner" id="rewardBanner"></div>
+
+            <div class="form-group">
+                <label for="customerPhone">Phone Number</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="tel" id="customerPhone" placeholder="(555) 123-4567" style="flex: 1;" inputmode="numeric" pattern="[0-9]*">
+                    <button class="btn btn-primary" onclick="updatePhone()" style="padding: 8px 16px;">Update</button>
+                </div>
+                <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">Required for customer to use kiosk</small>
+            </div>
+
+            <h3 style="margin: 20px 0 15px 0; padding-top: 20px; border-top: 1px solid #e0e0e0;">Add Drop-off</h3>
 
             <div class="form-group">
                 <label for="quantity">Quantity</label>
@@ -510,6 +521,17 @@
 
             // Show dropoff form
             document.getElementById('customerDetail').classList.add('show');
+
+            // Populate phone number field
+            const phoneInput = document.getElementById('customerPhone');
+            if (customer.phone_number) {
+                // Format phone number for display
+                const phone = customer.phone_number;
+                phoneInput.value = `(${phone.slice(0,3)}) ${phone.slice(3,6)}-${phone.slice(6)}`;
+            } else {
+                phoneInput.value = '';
+                phoneInput.placeholder = 'No phone number - add one here';
+            }
 
             // Check for available rewards
             const eligibleRewards = Math.floor(customer.total_dropoffs / 10) - customer.rewards_redeemed;
@@ -670,6 +692,56 @@
                 }
             } catch (error) {
                 alert('Unable to redeem reward. Please try again.');
+            }
+        }
+
+        async function updatePhone() {
+            if (!selectedCustomer) {
+                alert('Please select a customer first');
+                return;
+            }
+
+            const phoneInput = document.getElementById('customerPhone');
+            const phoneNumber = phoneInput.value.replace(/\D/g, '');
+
+            // Validate phone number
+            if (!phoneNumber || phoneNumber.length !== 10) {
+                alert('Please enter a valid 10-digit phone number');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/customers/${selectedCustomer.id}/phone`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        phoneNumber: phoneNumber
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Show success message
+                    const successMsg = document.getElementById('successMessage');
+                    successMsg.textContent = '✓ Phone number updated successfully!';
+                    successMsg.classList.add('show');
+                    setTimeout(() => {
+                        successMsg.classList.remove('show');
+                    }, 3000);
+
+                    // Update selected customer
+                    selectedCustomer = data.customer;
+
+                    // Refresh search results to show updated phone
+                    searchCustomers();
+                } else {
+                    alert(data.error || 'Failed to update phone number');
+                }
+            } catch (error) {
+                alert('Unable to update phone number. Please try again.');
             }
         }
 

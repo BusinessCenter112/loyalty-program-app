@@ -405,6 +405,53 @@ app.get('/api/customers', async (req, res) => {
     }
 });
 
+// Update customer phone number
+app.patch('/api/customers/:id/phone', async (req, res) => {
+    const { id } = req.params;
+    const { phoneNumber } = req.body;
+
+    if (!phoneNumber) {
+        return res.status(400).json({ error: 'Phone number is required' });
+    }
+
+    // Validate phone number format (should be 10 digits)
+    const cleanPhone = phoneNumber.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+        return res.status(400).json({ error: 'Phone number must be 10 digits' });
+    }
+
+    try {
+        // Check if phone number already exists for a different customer
+        const phoneCheck = await pool.query(
+            'SELECT * FROM customers WHERE phone_number = $1 AND id != $2',
+            [cleanPhone, parseInt(id)]
+        );
+
+        if (phoneCheck.rows.length > 0) {
+            return res.status(400).json({ error: 'This phone number is already registered to another customer' });
+        }
+
+        // Update customer phone number
+        const result = await pool.query(
+            'UPDATE customers SET phone_number = $1 WHERE id = $2 RETURNING *',
+            [cleanPhone, parseInt(id)]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Customer not found' });
+        }
+
+        res.json({
+            success: true,
+            message: 'Phone number updated successfully',
+            customer: result.rows[0]
+        });
+    } catch (error) {
+        console.error('Update phone error:', error);
+        res.status(500).json({ error: 'Failed to update phone number', details: error.message });
+    }
+});
+
 // Delete customer
 app.delete('/api/customers/:id', async (req, res) => {
     const { id } = req.params;

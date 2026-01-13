@@ -325,6 +325,8 @@
 
         let currentCustomer = null;
         let currentPhone = '';
+        let lastDropoffTime = 0;
+        const DROPOFF_COOLDOWN = 5000; // 5 seconds cooldown
 
         // Screen management
         function showScreen(screenId) {
@@ -382,6 +384,15 @@
         document.getElementById('logDropoffBtn').addEventListener('click', async () => {
             if (!currentCustomer) return;
 
+            // Check cooldown to prevent double-taps
+            const now = Date.now();
+            const timeSinceLastDropoff = now - lastDropoffTime;
+            if (timeSinceLastDropoff < DROPOFF_COOLDOWN) {
+                const remainingSeconds = Math.ceil((DROPOFF_COOLDOWN - timeSinceLastDropoff) / 1000);
+                showError('phoneError', `Please wait ${remainingSeconds} seconds before logging another drop-off`);
+                return;
+            }
+
             const button = document.getElementById('logDropoffBtn');
             const originalText = button.textContent;
             button.innerHTML = '<span class="loading"></span>';
@@ -402,6 +413,7 @@
 
                 if (response.ok) {
                     const data = await response.json();
+                    lastDropoffTime = Date.now(); // Update last dropoff time
                     displaySuccess(data.customer, data.eligibleRewards);
                     showScreen('successScreen');
                 } else {
@@ -549,6 +561,7 @@
         function resetToStart() {
             currentCustomer = null;
             currentPhone = '';
+            lastDropoffTime = 0; // Reset cooldown for next customer
             document.getElementById('phoneInput').value = '';
             document.getElementById('firstName').value = '';
             document.getElementById('lastName').value = '';
