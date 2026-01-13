@@ -216,6 +216,24 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        .staff-link {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .staff-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .staff-link a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -230,6 +248,10 @@
             <button id="phoneSubmit">Continue</button>
 
             <div id="phoneError" class="error-message" style="display: none;"></div>
+
+            <div class="staff-link">
+                <a href="staff-login.html">Staff Login</a>
+            </div>
         </div>
 
         <!-- Customer Found Screen -->
