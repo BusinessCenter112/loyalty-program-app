@@ -309,6 +309,7 @@
             </div>
 
             <button id="registerSubmit">Register & Log Drop-off</button>
+            <button id="registerOnlyBtn" style="background: #28a745;">Just Register</button>
             <button class="secondary" id="backFromRegister">Cancel</button>
 
             <div id="registerError" class="error-message" style="display: none;"></div>
@@ -340,6 +341,20 @@
             </div>
 
             <button id="doneBtn">Done</button>
+        </div>
+
+        <!-- Registration Only Success Screen -->
+        <div id="registerSuccessScreen" class="screen">
+            <div class="success-icon">✅</div>
+            <h1>Registration Complete!</h1>
+            <p class="subtitle">Welcome to the Rewards Club</p>
+
+            <div class="customer-info">
+                <div class="customer-name" id="registerSuccessName"></div>
+                <p class="info-text">You're all set! Next time you drop off a package, enter your phone number to log it and start earning rewards.</p>
+            </div>
+
+            <button id="registerDoneBtn">Done</button>
         </div>
     </div>
 
@@ -536,6 +551,60 @@
 
         document.getElementById('doneBtn').addEventListener('click', () => {
             resetToStart();
+        });
+
+        document.getElementById('registerDoneBtn').addEventListener('click', () => {
+            resetToStart();
+        });
+
+        // Register Only (no drop-off)
+        document.getElementById('registerOnlyBtn').addEventListener('click', async () => {
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const email = document.getElementById('email').value.trim();
+
+            if (!firstName || !lastName || !email) {
+                showError('registerError', 'Please fill in all fields');
+                return;
+            }
+
+            if (!email.includes('@')) {
+                showError('registerError', 'Please enter a valid email address');
+                return;
+            }
+
+            const button = document.getElementById('registerOnlyBtn');
+            const originalText = button.textContent;
+            button.innerHTML = '<span class="loading"></span>';
+            button.disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}/api/customers/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        firstName,
+                        lastName,
+                        email,
+                        phoneNumber: currentPhone
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('registerSuccessName').textContent =
+                        `${data.customer.first_name} ${data.customer.last_name}`;
+                    showScreen('registerSuccessScreen');
+                } else {
+                    showError('registerError', 'Registration failed. Please try again.');
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }
+            } catch (error) {
+                showError('registerError', 'Connection error. Please try again.');
+                button.textContent = originalText;
+                button.disabled = false;
+            }
         });
 
         // Helper functions
