@@ -726,17 +726,17 @@
             // Show overlay with "Woo hoo!"
             overlay.classList.add('active');
 
-            // After 1 second, explode the text and create confetti
+            // After 1.5 seconds, explode the text and create confetti
             setTimeout(() => {
                 text.classList.add('explode');
                 createConfetti();
 
-                // Hide overlay after confetti starts
+                // Hide overlay after confetti starts (2.5 seconds total)
                 setTimeout(() => {
                     overlay.classList.remove('active');
                     if (callback) callback();
-                }, 500);
-            }, 1000);
+                }, 1000);
+            }, 1500);
         }
 
         function createConfetti() {
