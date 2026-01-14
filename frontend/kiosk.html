@@ -237,9 +237,68 @@
         .staff-link a:hover {
             text-decoration: underline;
         }
+
+        /* Woo hoo Animation */
+        .celebration-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .celebration-overlay.active {
+            display: flex;
+        }
+
+        .woohoo-text {
+            font-size: 72px;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            animation: popIn 0.5s ease-out forwards;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .woohoo-text.explode {
+            animation: explodeOut 0.5s ease-out forwards;
+        }
+
+        @keyframes explodeOut {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            z-index: 10000;
+            pointer-events: none;
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
     </style>
 </head>
 <body>
+    <!-- Celebration Animation Overlay -->
+    <div id="celebrationOverlay" class="celebration-overlay">
+        <div id="woohooText" class="woohoo-text">Woo hoo!</div>
+    </div>
+
     <div class="container">
         <!-- Phone Entry Screen -->
         <div id="phoneScreen" class="screen active">
@@ -526,7 +585,10 @@
                     if (dropoffResponse.ok) {
                         const dropoffData = await dropoffResponse.json();
                         displaySuccess(dropoffData.customer, dropoffData.eligibleRewards);
-                        showScreen('successScreen');
+                        // Play celebration animation, then show success screen
+                        playCelebration(() => {
+                            showScreen('successScreen');
+                        });
                     } else {
                         showError('registerError', 'Registered but failed to log drop-off. Please try again.');
                         button.textContent = originalText;
@@ -648,6 +710,57 @@
             } else {
                 document.getElementById(`${prefix}Text`).textContent =
                     `${dropsToNext} more drop-off${dropsToNext > 1 ? 's' : ''} until your next reward!`;
+            }
+        }
+
+        function playCelebration(callback) {
+            const overlay = document.getElementById('celebrationOverlay');
+            const text = document.getElementById('woohooText');
+
+            // Reset animation
+            text.classList.remove('explode');
+            text.style.animation = 'none';
+            text.offsetHeight; // Trigger reflow
+            text.style.animation = '';
+
+            // Show overlay with "Woo hoo!"
+            overlay.classList.add('active');
+
+            // After 1 second, explode the text and create confetti
+            setTimeout(() => {
+                text.classList.add('explode');
+                createConfetti();
+
+                // Hide overlay after confetti starts
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                    if (callback) callback();
+                }, 500);
+            }, 1000);
+        }
+
+        function createConfetti() {
+            const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE'];
+            const confettiCount = 100;
+
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = '-10px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                confetti.style.width = (Math.random() * 10 + 5) + 'px';
+                confetti.style.height = (Math.random() * 10 + 5) + 'px';
+                confetti.style.animation = `confettiFall ${Math.random() * 2 + 2}s linear forwards`;
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+
+                document.body.appendChild(confetti);
+
+                // Remove confetti after animation
+                setTimeout(() => {
+                    confetti.remove();
+                }, 4000);
             }
         }
 
