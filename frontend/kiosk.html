@@ -791,26 +791,35 @@
         });
 
         // iOS PWA keyboard fix - force focus on tap for home screen apps
-        if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
-            const inputs = document.querySelectorAll('input[type="tel"], input[type="text"], input[type="email"]');
-            inputs.forEach(input => {
-                input.addEventListener('touchstart', function(e) {
-                    const el = this;
-                    setTimeout(() => {
-                        el.focus();
-                        el.click();
-                    }, 100);
-                });
-            });
+        function forceIOSKeyboard(input) {
+            // Create a temporary input, focus it, then focus the real input
+            const temp = document.createElement('input');
+            temp.style.position = 'absolute';
+            temp.style.opacity = '0';
+            temp.style.height = '0';
+            temp.style.fontSize = '16px'; // Prevents iOS zoom
+            document.body.appendChild(temp);
+            temp.focus();
+            setTimeout(() => {
+                input.focus();
+                input.click();
+                temp.remove();
+            }, 50);
         }
 
-        // Auto-focus phone input on page load
-        setTimeout(() => {
-            const phoneInput = document.getElementById('phoneInput');
-            if (phoneInput && document.getElementById('phoneScreen').classList.contains('active')) {
-                phoneInput.focus();
-            }
-        }, 300);
+        // Apply to all inputs
+        const allInputs = document.querySelectorAll('input[type="tel"], input[type="text"], input[type="email"]');
+        allInputs.forEach(input => {
+            // Make font size 16px to prevent iOS zoom
+            input.style.fontSize = '16px';
+
+            input.addEventListener('touchend', function(e) {
+                if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
+                    e.preventDefault();
+                    forceIOSKeyboard(this);
+                }
+            });
+        });
     </script>
 </body>
 </html>
