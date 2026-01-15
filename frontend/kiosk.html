@@ -789,6 +789,28 @@
         document.getElementById('phoneInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') document.getElementById('phoneSubmit').click();
         });
+
+        // iOS PWA keyboard fix - force focus on tap for home screen apps
+        if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
+            const inputs = document.querySelectorAll('input[type="tel"], input[type="text"], input[type="email"]');
+            inputs.forEach(input => {
+                input.addEventListener('touchstart', function(e) {
+                    const el = this;
+                    setTimeout(() => {
+                        el.focus();
+                        el.click();
+                    }, 100);
+                });
+            });
+        }
+
+        // Auto-focus phone input on page load
+        setTimeout(() => {
+            const phoneInput = document.getElementById('phoneInput');
+            if (phoneInput && document.getElementById('phoneScreen').classList.contains('active')) {
+                phoneInput.focus();
+            }
+        }, 300);
     </script>
 </body>
 </html>
