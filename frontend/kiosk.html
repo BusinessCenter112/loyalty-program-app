@@ -257,10 +257,10 @@
         }
 
         .woohoo-text {
-            font-size: 72px;
+            font-size: 96px;
             font-weight: bold;
             color: #FFD700;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
             animation: popIn 0.5s ease-out forwards;
         }
 
@@ -726,22 +726,22 @@
             // Show overlay with "Woo hoo!"
             overlay.classList.add('active');
 
-            // After 1.5 seconds, explode the text and create confetti
+            // After 3.5 seconds, explode the text and create confetti
             setTimeout(() => {
                 text.classList.add('explode');
                 createConfetti();
 
-                // Hide overlay after confetti starts (2.5 seconds total)
+                // Hide overlay after confetti (2 seconds)
                 setTimeout(() => {
                     overlay.classList.remove('active');
                     if (callback) callback();
-                }, 1000);
-            }, 1500);
+                }, 2000);
+            }, 3500);
         }
 
         function createConfetti() {
             const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE'];
-            const confettiCount = 100;
+            const confettiCount = 200;
 
             for (let i = 0; i < confettiCount; i++) {
                 const confetti = document.createElement('div');

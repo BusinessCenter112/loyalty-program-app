@@ -16,7 +16,10 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 // PostgreSQL connection
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL || 'postgresql://web20businesscenter_user:pM42fzthbgk86ssmFR4Ilv2nxcNjbrIA@dpg-d5gl59q4d50c73b232h0-a/web20businesscenter',
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000
 });
 
 // Initialize database tables
@@ -92,6 +95,11 @@ async function initializeDatabase() {
             console.log('Default staff PINs initialized');
         }
 
+        // Create index on phone_number for faster lookups
+        await client.query(`
+            CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone_number)
+        `);
+
         console.log('Database tables initialized successfully');
     } catch (error) {
         console.error('Database initialization error:', error);
@@ -101,6 +109,16 @@ async function initializeDatabase() {
 }
 
 // API Routes
+
+// Health check endpoint - keeps database connection warm
+app.get('/api/health', async (req, res) => {
+    try {
+        await pool.query('SELECT 1');
+        res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+});
 
 // Customer registration
 app.post('/api/customers/register', async (req, res) => {
