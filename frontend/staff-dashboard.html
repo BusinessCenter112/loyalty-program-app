@@ -319,6 +319,27 @@
             display: block;
         }
 
+        .selected-customer-header {
+            background: linear-gradient(135deg, #4169E1 0%, #2855C5 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .selected-customer-header h2 {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .selected-customer-header .customer-email-display {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
         @media (max-width: 768px) {
             .header {
                 flex-direction: column;
@@ -361,7 +382,10 @@
         <div class="success-message" id="successMessage"></div>
 
         <div id="customerDetail" class="dropoff-form">
-            <h3 style="margin-bottom: 15px;">Customer Information</h3>
+            <div class="selected-customer-header">
+                <h2 id="selectedCustomerName"></h2>
+                <div class="customer-email-display" id="selectedCustomerEmail"></div>
+            </div>
 
             <div class="reward-banner" id="rewardBanner"></div>
 
@@ -521,6 +545,10 @@
 
             // Show dropoff form
             document.getElementById('customerDetail').classList.add('show');
+
+            // Display selected customer name prominently
+            document.getElementById('selectedCustomerName').textContent = `${customer.first_name} ${customer.last_name}`;
+            document.getElementById('selectedCustomerEmail').textContent = customer.email;
 
             // Populate phone number field
             const phoneInput = document.getElementById('customerPhone');
