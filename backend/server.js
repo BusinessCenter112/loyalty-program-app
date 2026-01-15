@@ -88,11 +88,17 @@ async function initializeDatabase() {
         if (parseInt(staffCheck.rows[0].count) === 0) {
             await client.query(`
                 INSERT INTO staff (pin, name) VALUES
-                ('1157', 'Staff Member 1'),
-                ('5600', 'Staff Member 2'),
-                ('0725', 'Staff Member 3')
+                ('1157', 'Gary Cooper'),
+                ('5600', 'Chris Cooper'),
+                ('0725', 'Nika Villalva')
             `);
             console.log('Default staff PINs initialized');
+        } else {
+            // Update existing staff names
+            await client.query(`UPDATE staff SET name = 'Gary Cooper' WHERE pin = '1157'`);
+            await client.query(`UPDATE staff SET name = 'Chris Cooper' WHERE pin = '5600'`);
+            await client.query(`UPDATE staff SET name = 'Nika Villalva' WHERE pin = '0725'`);
+            console.log('Staff names updated');
         }
 
         // Create index on phone_number for faster lookups
