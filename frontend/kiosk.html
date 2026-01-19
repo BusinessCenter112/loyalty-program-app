@@ -298,12 +298,83 @@
             0% { transform: translateY(0) rotate(0deg); opacity: 1; }
             100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
+
+        /* Milestone Celebration Styles */
+        .milestone-content {
+            text-align: center;
+            animation: milestonePopIn 0.6s ease-out forwards;
+        }
+
+        .milestone-number {
+            font-size: 150px;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 0 0 40px rgba(255, 215, 0, 0.8), 0 0 80px rgba(255, 215, 0, 0.4);
+            line-height: 1;
+        }
+
+        .milestone-message {
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            margin-top: 20px;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes milestonePopIn {
+            0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(5deg); opacity: 1; }
+            70% { transform: scale(0.9) rotate(-3deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .milestone-content.celebrate {
+            animation: milestoneBounce 0.5s ease-in-out infinite;
+        }
+
+        @keyframes milestoneBounce {
+            0%, 100% { transform: scale(1) translateY(0); }
+            50% { transform: scale(1.05) translateY(-10px); }
+        }
+
+        .milestone-content.explode {
+            animation: milestoneExplode 0.5s ease-out forwards;
+        }
+
+        @keyframes milestoneExplode {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.8; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* Firework burst effect */
+        .firework {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            z-index: 10000;
+            pointer-events: none;
+        }
+
+        @keyframes fireworkBurst {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
     </style>
 </head>
 <body>
     <!-- Celebration Animation Overlay -->
     <div id="celebrationOverlay" class="celebration-overlay">
         <div id="woohooText" class="woohoo-text">Woo hoo!</div>
+    </div>
+
+    <!-- Milestone Celebration Overlay -->
+    <div id="milestoneOverlay" class="celebration-overlay">
+        <div class="milestone-content">
+            <div id="milestoneNumber" class="milestone-number"></div>
+            <div id="milestoneMessage" class="milestone-message"></div>
+        </div>
     </div>
 
     <div class="container">
@@ -525,7 +596,16 @@
                     lastDropoffTime = Date.now(); // Update last dropoff time
                     lastDropoffCustomerId = currentCustomer.id; // Track which customer
                     displaySuccess(data.customer, data.eligibleRewards);
-                    showScreen('successScreen');
+
+                    // Check for milestone celebration
+                    const milestone = checkMilestone(data.customer.total_dropoffs);
+                    if (milestone) {
+                        playMilestoneCelebration(milestone, () => {
+                            showScreen('successScreen');
+                        });
+                    } else {
+                        showScreen('successScreen');
+                    }
                 } else {
                     showError('phoneError', 'Failed to log drop-off');
                     button.textContent = originalText;
@@ -592,10 +672,20 @@
                     if (dropoffResponse.ok) {
                         const dropoffData = await dropoffResponse.json();
                         displaySuccess(dropoffData.customer, dropoffData.eligibleRewards);
-                        // Play celebration animation, then show success screen
-                        playCelebration(() => {
-                            showScreen('successScreen');
-                        });
+
+                        // Check for milestone (unlikely on first drop-off, but just in case)
+                        const milestone = checkMilestone(dropoffData.customer.total_dropoffs);
+                        if (milestone) {
+                            // Play milestone celebration instead of regular celebration
+                            playMilestoneCelebration(milestone, () => {
+                                showScreen('successScreen');
+                            });
+                        } else {
+                            // Play regular welcome celebration, then show success screen
+                            playCelebration(() => {
+                                showScreen('successScreen');
+                            });
+                        }
                     } else {
                         showError('registerError', 'Registered but failed to log drop-off. Please try again.');
                         button.textContent = originalText;
@@ -769,6 +859,116 @@
                     confetti.remove();
                 }, 4000);
             }
+        }
+
+        // Milestone celebration system
+        const milestoneMessages = {
+            5: { number: '5', message: "You're on fire! 🔥", color: '#FF6B35' },
+            10: { number: '10', message: "Double digits! ⭐", color: '#FFD700' },
+            25: { number: '25', message: "Quarter century! 👑", color: '#9B59B6' },
+            50: { number: '50', message: "Halfway to 100! 🚀", color: '#3498DB' },
+            75: { number: '75', message: "Unstoppable! 💪", color: '#27AE60' },
+            100: { number: '💯', message: "LEGEND STATUS! 🏆", color: '#E74C3C' },
+            150: { number: '150', message: "Beyond amazing! 🌟", color: '#F39C12' },
+            200: { number: '200', message: "Loyalty royalty! 👸", color: '#8E44AD' }
+        };
+
+        function checkMilestone(totalDropoffs) {
+            const milestones = [5, 10, 25, 50, 75, 100, 150, 200];
+            return milestones.includes(totalDropoffs) ? totalDropoffs : null;
+        }
+
+        function playMilestoneCelebration(milestone, callback) {
+            const milestoneData = milestoneMessages[milestone];
+            if (!milestoneData) {
+                if (callback) callback();
+                return;
+            }
+
+            const overlay = document.getElementById('milestoneOverlay');
+            const content = overlay.querySelector('.milestone-content');
+            const numberEl = document.getElementById('milestoneNumber');
+            const messageEl = document.getElementById('milestoneMessage');
+
+            // Set content
+            numberEl.textContent = milestoneData.number;
+            numberEl.style.color = milestoneData.color;
+            messageEl.textContent = milestoneData.message;
+
+            // Reset animations
+            content.classList.remove('celebrate', 'explode');
+            content.style.animation = 'none';
+            content.offsetHeight; // Trigger reflow
+            content.style.animation = '';
+
+            // Show overlay
+            overlay.classList.add('active');
+
+            // Create fireworks immediately
+            createFireworks();
+
+            // Start bouncing after initial pop
+            setTimeout(() => {
+                content.classList.add('celebrate');
+            }, 600);
+
+            // Explode and create confetti after 2.5 seconds
+            setTimeout(() => {
+                content.classList.remove('celebrate');
+                content.classList.add('explode');
+                createConfetti();
+                createFireworks();
+
+                // Hide overlay and callback
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                    content.classList.remove('explode');
+                    if (callback) callback();
+                }, 500);
+            }, 2500);
+        }
+
+        function createFireworks() {
+            const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FF69B4', '#00FF7F', '#FF4500', '#DA70D6'];
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+
+            // Create multiple burst points
+            const burstPoints = [
+                { x: centerX, y: centerY },
+                { x: centerX - 150, y: centerY - 100 },
+                { x: centerX + 150, y: centerY - 100 },
+                { x: centerX - 100, y: centerY + 100 },
+                { x: centerX + 100, y: centerY + 100 }
+            ];
+
+            burstPoints.forEach((point, burstIndex) => {
+                setTimeout(() => {
+                    for (let i = 0; i < 30; i++) {
+                        const firework = document.createElement('div');
+                        firework.className = 'firework';
+                        firework.style.left = point.x + 'px';
+                        firework.style.top = point.y + 'px';
+                        firework.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+                        // Random direction
+                        const angle = (Math.PI * 2 * i) / 30 + Math.random() * 0.5;
+                        const distance = 80 + Math.random() * 120;
+                        const tx = Math.cos(angle) * distance;
+                        const ty = Math.sin(angle) * distance;
+
+                        firework.style.setProperty('--tx', tx + 'px');
+                        firework.style.setProperty('--ty', ty + 'px');
+                        firework.style.animation = `fireworkBurst ${0.6 + Math.random() * 0.4}s ease-out forwards`;
+
+                        document.body.appendChild(firework);
+
+                        setTimeout(() => {
+                            firework.remove();
+                        }, 1000);
+                    }
+                }, burstIndex * 200);
+            });
         }
 
         function showError(elementId, message) {
