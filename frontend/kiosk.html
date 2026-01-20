@@ -1115,11 +1115,11 @@
                         const recentDropoffs = data.dropoffs.slice(0, 5);
                         historyList.innerHTML = recentDropoffs.map(d => {
                             const date = new Date(d.date).toLocaleDateString('en-US', {
-                                month: 'short', day: 'numeric', year: 'numeric'
+                                weekday: 'short', month: 'short', day: 'numeric'
                             });
                             return `<div class="history-item">
                                 <span class="date">${date}</span>
-                                <span class="qty">${d.quantity} pkg${d.quantity > 1 ? 's' : ''}</span>
+                                <span class="qty">✓</span>
                             </div>`;
                         }).join('');
                         historySection.style.display = 'block';
