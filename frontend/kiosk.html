@@ -406,6 +406,36 @@
             100% { transform: scale(2.5); opacity: 0; }
         }
 
+        .congrats-text {
+            font-size: 42px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+            line-height: 1.3;
+            opacity: 0;
+            display: none;
+        }
+
+        .congrats-text.show {
+            display: block;
+            animation: congratsAppear 0.5s ease-out forwards;
+        }
+
+        @keyframes congratsAppear {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .congrats-text.fadeout {
+            animation: congratsFadeOut 0.5s ease-out forwards;
+        }
+
+        @keyframes congratsFadeOut {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.1); }
+        }
+
         .confetti {
             position: fixed;
             width: 10px;
@@ -660,6 +690,7 @@
     <!-- Celebration Animation Overlay -->
     <div id="celebrationOverlay" class="celebration-overlay">
         <div id="woohooText" class="woohoo-text">Woo hoo!</div>
+        <div id="congratsText" class="congrats-text">Congrats! You just joined<br>Web 2.0 Business Center's<br>Rewards Club!</div>
     </div>
 
     <!-- Milestone Celebration Overlay -->
@@ -1181,27 +1212,42 @@
 
         function playCelebration(callback) {
             const overlay = document.getElementById('celebrationOverlay');
-            const text = document.getElementById('woohooText');
+            const woohooText = document.getElementById('woohooText');
+            const congratsText = document.getElementById('congratsText');
 
-            // Reset animation
-            text.classList.remove('explode');
-            text.style.animation = 'none';
-            text.offsetHeight; // Trigger reflow
-            text.style.animation = '';
+            // Reset animations
+            woohooText.classList.remove('explode');
+            woohooText.style.animation = 'none';
+            woohooText.style.display = '';
+            woohooText.offsetHeight; // Trigger reflow
+            woohooText.style.animation = '';
+            congratsText.classList.remove('show', 'fadeout');
+            congratsText.style.display = 'none';
 
             // Show overlay with "Woo hoo!"
             overlay.classList.add('active');
 
-            // After 2.5 seconds, explode the text and create confetti
+            // After 2.5 seconds, explode "Woo hoo!"
             setTimeout(() => {
-                text.classList.add('explode');
-                createConfetti();
+                woohooText.classList.add('explode');
 
-                // Hide overlay after confetti (2 seconds)
+                // After explosion (0.5s), show congrats text
                 setTimeout(() => {
-                    overlay.classList.remove('active');
-                    if (callback) callback();
-                }, 2000);
+                    woohooText.style.display = 'none';
+                    congratsText.classList.add('show');
+
+                    // After 2.8 seconds, fade out congrats and show confetti
+                    setTimeout(() => {
+                        congratsText.classList.add('fadeout');
+                        createConfetti();
+
+                        // Hide overlay after confetti (1.5 seconds)
+                        setTimeout(() => {
+                            overlay.classList.remove('active');
+                            if (callback) callback();
+                        }, 1500);
+                    }, 2800);
+                }, 500);
             }, 2500);
         }
 

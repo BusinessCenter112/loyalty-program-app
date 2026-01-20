@@ -419,7 +419,7 @@ app.post('/api/rewards/redeem', async (req, res) => {
 app.get('/api/customers', async (req, res) => {
     try {
         const result = await pool.query(
-            'SELECT * FROM customers ORDER BY last_name, first_name'
+            'SELECT * FROM customers ORDER BY created_at DESC'
         );
 
         res.json({ customers: result.rows });
