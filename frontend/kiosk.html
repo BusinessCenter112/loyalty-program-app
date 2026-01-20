@@ -142,19 +142,101 @@
             margin-top: 5px;
         }
 
-        .progress-bar {
-            width: 100%;
-            height: 12px;
-            background: #e9ecef;
-            border-radius: 6px;
-            overflow: hidden;
-            margin: 20px 0;
+        .progress-ring-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 25px 0;
         }
 
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4169E1 0%, #2855C5 100%);
-            transition: width 0.5s ease;
+        .progress-ring {
+            position: relative;
+            width: 140px;
+            height: 140px;
+        }
+
+        .progress-ring svg {
+            transform: rotate(-90deg);
+            width: 140px;
+            height: 140px;
+        }
+
+        .progress-ring-bg {
+            fill: none;
+            stroke: #e9ecef;
+            stroke-width: 12;
+        }
+
+        .progress-ring-fill {
+            fill: none;
+            stroke: url(#progressGradient);
+            stroke-width: 12;
+            stroke-linecap: round;
+            stroke-dasharray: 377;
+            stroke-dashoffset: 377;
+            transition: stroke-dashoffset 1s ease-out;
+        }
+
+        .progress-ring-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .progress-ring-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #4169E1;
+            line-height: 1;
+        }
+
+        .progress-ring-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .rank-badge.no-rank {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .rank-badge.bronze {
+            background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+            color: white;
+        }
+
+        .rank-badge.silver {
+            background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
+            color: #333;
+        }
+
+        .rank-badge.gold {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #333;
+        }
+
+        .rank-badge.platinum {
+            background: linear-gradient(135deg, #E5E4E2 0%, #A0B2C6 100%);
+            color: #333;
+            box-shadow: 0 0 15px rgba(160, 178, 198, 0.5);
+        }
+
+        .rank-icon {
+            font-size: 20px;
         }
 
         .reward-badge {
@@ -337,6 +419,179 @@
             100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
 
+        /* Rank-Up Celebration Styles */
+        .rankup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+        }
+
+        .rankup-overlay.active {
+            display: flex;
+        }
+
+        .rankup-stage {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .rankup-worker {
+            position: absolute;
+            font-size: 80px;
+            bottom: 30%;
+            left: -100px;
+            opacity: 0;
+        }
+
+        .rankup-worker.walk-in {
+            animation: workerWalkIn 1s ease-out forwards;
+        }
+
+        @keyframes workerWalkIn {
+            0% { left: -100px; opacity: 0; }
+            100% { left: 25%; opacity: 1; }
+        }
+
+        .rankup-hammer {
+            position: absolute;
+            font-size: 60px;
+            bottom: 35%;
+            left: 30%;
+            opacity: 0;
+            transform-origin: bottom right;
+        }
+
+        .rankup-hammer.swing {
+            animation: hammerSwing 0.3s ease-in-out;
+            opacity: 1;
+        }
+
+        @keyframes hammerSwing {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(-60deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        .rankup-old-badge {
+            position: absolute;
+            top: 35%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 48px;
+            padding: 20px 40px;
+            border-radius: 30px;
+            opacity: 0;
+        }
+
+        .rankup-old-badge.show {
+            opacity: 1;
+        }
+
+        .rankup-old-badge.shake {
+            animation: badgeShake 0.1s ease-in-out;
+        }
+
+        @keyframes badgeShake {
+            0%, 100% { transform: translateX(-50%) rotate(0deg); }
+            25% { transform: translateX(-50%) rotate(-5deg); }
+            75% { transform: translateX(-50%) rotate(5deg); }
+        }
+
+        .rankup-old-badge.crumble {
+            animation: badgeCrumble 0.5s ease-out forwards;
+        }
+
+        @keyframes badgeCrumble {
+            0% { transform: translateX(-50%) scale(1); opacity: 1; }
+            50% { transform: translateX(-50%) scale(1.1); }
+            100% { transform: translateX(-50%) scale(0) rotate(180deg); opacity: 0; }
+        }
+
+        .rankup-sparkles {
+            position: absolute;
+            top: 35%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 40px;
+            opacity: 0;
+        }
+
+        .rankup-sparkles.show {
+            animation: sparkleAppear 0.8s ease-out forwards;
+        }
+
+        @keyframes sparkleAppear {
+            0% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+            50% { opacity: 1; transform: translateX(-50%) scale(1.2); }
+            100% { opacity: 0; transform: translateX(-50%) scale(1); }
+        }
+
+        .rankup-worker.thumbsup {
+            animation: workerThumbsUp 0.5s ease-out forwards;
+        }
+
+        @keyframes workerThumbsUp {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .rankup-new-badge {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            text-align: center;
+            opacity: 0;
+        }
+
+        .rankup-new-badge.appear {
+            animation: newBadgeAppear 0.6s ease-out forwards;
+        }
+
+        @keyframes newBadgeAppear {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            60% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .rankup-new-badge .badge-icon {
+            font-size: 120px;
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        .rankup-new-badge .badge-text {
+            font-size: 36px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        .rankup-new-badge .badge-name {
+            font-size: 64px;
+            font-weight: bold;
+            margin: 10px 0;
+            text-shadow: 0 0 30px currentColor;
+        }
+
+        .rankup-new-badge.shrink {
+            animation: badgeShrink 0.5s ease-in forwards;
+        }
+
+        @keyframes badgeShrink {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+        }
+
         /* Milestone Celebration Styles */
         .milestone-content {
             text-align: center;
@@ -415,6 +670,22 @@
         </div>
     </div>
 
+    <!-- Rank-Up Celebration Overlay -->
+    <div id="rankupOverlay" class="rankup-overlay">
+        <div class="rankup-stage">
+            <div id="rankupWorker" class="rankup-worker">👷</div>
+            <div id="rankupHammer" class="rankup-hammer">🔨</div>
+            <div id="rankupOldBadge" class="rankup-old-badge"></div>
+            <div id="rankupSparkles" class="rankup-sparkles">✨🔧✨</div>
+            <div id="rankupNewBadge" class="rankup-new-badge">
+                <span class="badge-icon"></span>
+                <div class="badge-text">You've reached</div>
+                <div class="badge-name"></div>
+                <div class="badge-text">status!</div>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <!-- Phone Entry Screen -->
         <div id="phoneScreen" class="screen active">
@@ -437,6 +708,10 @@
             <div class="logo">👋</div>
             <div class="customer-info">
                 <div class="customer-name" id="customerName"></div>
+                <div id="customerRank" class="rank-badge no-rank" style="display: none;">
+                    <span class="rank-icon"></span>
+                    <span class="rank-name"></span>
+                </div>
                 <div class="stats">
                     <div class="stat">
                         <div class="stat-number" id="totalDropoffs">0</div>
@@ -447,10 +722,25 @@
                         <div class="stat-label">Rewards Available</div>
                     </div>
                 </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
+                <div class="progress-ring-container">
+                    <div class="progress-ring">
+                        <svg viewBox="0 0 140 140">
+                            <defs>
+                                <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" style="stop-color:#4169E1"/>
+                                    <stop offset="100%" style="stop-color:#2855C5"/>
+                                </linearGradient>
+                            </defs>
+                            <circle class="progress-ring-bg" cx="70" cy="70" r="60"/>
+                            <circle class="progress-ring-fill" id="progressRing" cx="70" cy="70" r="60"/>
+                        </svg>
+                        <div class="progress-ring-text">
+                            <div class="progress-ring-number" id="progressNumber">0/10</div>
+                            <div class="progress-ring-label">to next reward</div>
+                        </div>
+                    </div>
+                    <div id="progressText" class="info-text"></div>
                 </div>
-                <div id="progressText" class="info-text"></div>
 
                 <div class="history-section" id="historySection" style="display: none;">
                     <h3>Recent Drop-offs</h3>
@@ -500,6 +790,10 @@
             <h1>Drop-off Logged!</h1>
 
             <div class="customer-info">
+                <div id="successRank" class="rank-badge no-rank" style="display: none;">
+                    <span class="rank-icon"></span>
+                    <span class="rank-name"></span>
+                </div>
                 <div class="stats">
                     <div class="stat">
                         <div class="stat-number" id="successDropoffs">0</div>
@@ -510,10 +804,25 @@
                         <div class="stat-label">Rewards Available</div>
                     </div>
                 </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="successProgressFill"></div>
+                <div class="progress-ring-container">
+                    <div class="progress-ring">
+                        <svg viewBox="0 0 140 140">
+                            <defs>
+                                <linearGradient id="successProgressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" style="stop-color:#4169E1"/>
+                                    <stop offset="100%" style="stop-color:#2855C5"/>
+                                </linearGradient>
+                            </defs>
+                            <circle class="progress-ring-bg" cx="70" cy="70" r="60"/>
+                            <circle class="progress-ring-fill" id="successProgressRing" cx="70" cy="70" r="60" style="stroke: url(#successProgressGradient)"/>
+                        </svg>
+                        <div class="progress-ring-text">
+                            <div class="progress-ring-number" id="successProgressNumber">0/10</div>
+                            <div class="progress-ring-label">to next reward</div>
+                        </div>
+                    </div>
+                    <div id="successProgressText" class="info-text"></div>
                 </div>
-                <div id="successProgressText" class="info-text"></div>
                 <div id="rewardBadge" style="display: none;">
                     <div class="reward-badge">🎉 You earned a reward!</div>
                 </div>
@@ -604,6 +913,9 @@
                 return;
             }
 
+            // Store old total for rank-up check
+            const oldTotal = currentCustomer.total_dropoffs;
+
             const button = document.getElementById('logDropoffBtn');
             const originalText = button.textContent;
             button.innerHTML = '<span class="loading"></span>';
@@ -628,14 +940,22 @@
                     lastDropoffCustomerId = currentCustomer.id; // Track which customer
                     displaySuccess(data.customer, data.eligibleRewards);
 
-                    // Check for milestone celebration
-                    const milestone = checkMilestone(data.customer.total_dropoffs);
-                    if (milestone) {
-                        playMilestoneCelebration(milestone, () => {
+                    // Check for rank-up first (takes priority)
+                    const rankUp = checkRankUp(oldTotal, data.customer.total_dropoffs);
+                    if (rankUp) {
+                        playRankUpCelebration(rankUp.oldRank, rankUp.newRank, () => {
                             showScreen('successScreen');
                         });
                     } else {
-                        showScreen('successScreen');
+                        // Check for milestone celebration
+                        const milestone = checkMilestone(data.customer.total_dropoffs);
+                        if (milestone) {
+                            playMilestoneCelebration(milestone, () => {
+                                showScreen('successScreen');
+                            });
+                        } else {
+                            showScreen('successScreen');
+                        }
                     }
                 } else {
                     showError('phoneError', 'Failed to log drop-off');
@@ -747,6 +1067,29 @@
             resetToStart();
         });
 
+        // Rank system
+        function getRank(totalDropoffs) {
+            if (totalDropoffs >= 150) return { name: 'Platinum', class: 'platinum', icon: '💎' };
+            if (totalDropoffs >= 50) return { name: 'Gold', class: 'gold', icon: '🥇' };
+            if (totalDropoffs >= 25) return { name: 'Silver', class: 'silver', icon: '🥈' };
+            if (totalDropoffs >= 10) return { name: 'Bronze', class: 'bronze', icon: '🥉' };
+            return null; // No rank yet
+        }
+
+        function displayRank(elementId, totalDropoffs) {
+            const rankBadge = document.getElementById(elementId);
+            const rank = getRank(totalDropoffs);
+
+            if (rank) {
+                rankBadge.className = `rank-badge ${rank.class}`;
+                rankBadge.querySelector('.rank-icon').textContent = rank.icon;
+                rankBadge.querySelector('.rank-name').textContent = rank.name;
+                rankBadge.style.display = 'inline-flex';
+            } else {
+                rankBadge.style.display = 'none';
+            }
+        }
+
         // Helper functions
         function displayCustomer(customer, eligibleRewards) {
             document.getElementById('customerName').textContent =
@@ -754,6 +1097,7 @@
             document.getElementById('totalDropoffs').textContent = customer.total_dropoffs;
             document.getElementById('rewardsEarned').textContent = eligibleRewards;
 
+            displayRank('customerRank', customer.total_dropoffs);
             updateProgress('progress', customer.total_dropoffs, eligibleRewards);
         }
 
@@ -793,6 +1137,7 @@
             document.getElementById('successDropoffs').textContent = customer.total_dropoffs;
             document.getElementById('successRewards').textContent = eligibleRewards;
 
+            displayRank('successRank', customer.total_dropoffs);
             updateProgress('successProgress', customer.total_dropoffs, eligibleRewards);
 
             // Show reward badge if they just earned a reward
@@ -805,14 +1150,29 @@
         }
 
         function updateProgress(prefix, totalDropoffs, eligibleRewards) {
-            const dropsToNext = 10 - (totalDropoffs % 10);
-            const progressPercent = ((totalDropoffs % 10) / 10) * 100;
+            const currentInCycle = totalDropoffs % 10;
+            const dropsToNext = 10 - currentInCycle;
+            const progressPercent = currentInCycle / 10;
 
-            document.getElementById(`${prefix}Fill`).style.width = `${progressPercent}%`;
+            // Animate the ring (circumference = 2 * PI * 60 ≈ 377)
+            const circumference = 377;
+            const offset = circumference - (circumference * progressPercent);
 
-            if (dropsToNext === 10) {
+            const ring = document.getElementById(`${prefix}Ring`);
+            const number = document.getElementById(`${prefix}Number`);
+
+            // Small delay to trigger animation
+            setTimeout(() => {
+                ring.style.strokeDashoffset = offset;
+            }, 100);
+
+            number.textContent = `${currentInCycle}/10`;
+
+            if (dropsToNext === 10 && totalDropoffs > 0) {
                 document.getElementById(`${prefix}Text`).textContent =
                     '🎉 You have rewards available!';
+                number.textContent = '10/10';
+                ring.style.strokeDashoffset = 0;
             } else {
                 document.getElementById(`${prefix}Text`).textContent =
                     `${dropsToNext} more drop-off${dropsToNext > 1 ? 's' : ''} until your next reward!`;
@@ -980,6 +1340,146 @@
             });
         }
 
+        // Rank-up celebration system
+        const rankThresholds = [10, 25, 50, 150]; // Bronze, Silver, Gold, Platinum
+
+        function checkRankUp(oldTotal, newTotal) {
+            const oldRank = getRank(oldTotal);
+            const newRank = getRank(newTotal);
+
+            // Check if crossed into a new rank
+            if (newRank && (!oldRank || oldRank.name !== newRank.name)) {
+                return { oldRank, newRank };
+            }
+            return null;
+        }
+
+        function playRankUpCelebration(oldRank, newRank, callback) {
+            const overlay = document.getElementById('rankupOverlay');
+            const worker = document.getElementById('rankupWorker');
+            const hammer = document.getElementById('rankupHammer');
+            const oldBadge = document.getElementById('rankupOldBadge');
+            const sparkles = document.getElementById('rankupSparkles');
+            const newBadgeEl = document.getElementById('rankupNewBadge');
+
+            // Reset all animations
+            worker.className = 'rankup-worker';
+            hammer.className = 'rankup-hammer';
+            oldBadge.className = 'rankup-old-badge';
+            sparkles.className = 'rankup-sparkles';
+            newBadgeEl.className = 'rankup-new-badge';
+
+            // Set up old badge (if exists)
+            if (oldRank) {
+                oldBadge.textContent = `${oldRank.icon} ${oldRank.name}`;
+                oldBadge.style.background = getGradientForRank(oldRank.class);
+                oldBadge.style.color = oldRank.class === 'bronze' ? 'white' : '#333';
+            } else {
+                oldBadge.textContent = '📦 New Member';
+                oldBadge.style.background = '#e0e0e0';
+                oldBadge.style.color = '#666';
+            }
+
+            // Set up new badge
+            newBadgeEl.querySelector('.badge-icon').textContent = newRank.icon;
+            newBadgeEl.querySelector('.badge-name').textContent = newRank.name.toUpperCase();
+            newBadgeEl.querySelector('.badge-name').style.color = getColorForRank(newRank.class);
+
+            // Show overlay
+            overlay.classList.add('active');
+
+            // Animation sequence
+            let time = 0;
+
+            // 1. Show old badge
+            setTimeout(() => {
+                oldBadge.classList.add('show');
+            }, time += 200);
+
+            // 2. Worker walks in
+            setTimeout(() => {
+                worker.classList.add('walk-in');
+            }, time += 300);
+
+            // 3. First hammer swing + shake
+            setTimeout(() => {
+                hammer.classList.add('swing');
+                oldBadge.classList.add('shake');
+            }, time += 1000);
+
+            // 4. Reset hammer, second swing + shake
+            setTimeout(() => {
+                hammer.classList.remove('swing');
+                oldBadge.classList.remove('shake');
+            }, time += 300);
+
+            setTimeout(() => {
+                hammer.classList.add('swing');
+                oldBadge.classList.add('shake');
+            }, time += 200);
+
+            // 5. Badge crumbles
+            setTimeout(() => {
+                hammer.classList.remove('swing');
+                hammer.style.opacity = '0';
+                oldBadge.classList.remove('shake');
+                oldBadge.classList.add('crumble');
+            }, time += 300);
+
+            // 6. Sparkles appear (building new badge)
+            setTimeout(() => {
+                sparkles.classList.add('show');
+            }, time += 500);
+
+            // 7. Worker does thumbs up
+            setTimeout(() => {
+                worker.textContent = '👷👍';
+                worker.classList.add('thumbsup');
+            }, time += 800);
+
+            // 8. New badge appears big in center
+            setTimeout(() => {
+                worker.style.opacity = '0';
+                newBadgeEl.classList.add('appear');
+                createConfetti();
+                createFireworks();
+            }, time += 700);
+
+            // 9. Badge shrinks and overlay closes
+            setTimeout(() => {
+                newBadgeEl.classList.add('shrink');
+            }, time += 2500);
+
+            setTimeout(() => {
+                overlay.classList.remove('active');
+                // Reset worker for next time
+                worker.textContent = '👷';
+                worker.style.opacity = '';
+                hammer.style.opacity = '';
+                if (callback) callback();
+            }, time += 600);
+        }
+
+        function getGradientForRank(rankClass) {
+            const gradients = {
+                bronze: 'linear-gradient(135deg, #CD7F32 0%, #8B4513 100%)',
+                silver: 'linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%)',
+                gold: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                platinum: 'linear-gradient(135deg, #E5E4E2 0%, #A0B2C6 100%)'
+            };
+            return gradients[rankClass] || '#e0e0e0';
+        }
+
+        function getColorForRank(rankClass) {
+            const colors = {
+                bronze: '#CD7F32',
+                silver: '#A8A8A8',
+                gold: '#FFD700',
+                platinum: '#A0B2C6'
+            };
+            return colors[rankClass] || '#666';
+        }
+
         function showError(elementId, message) {
             const errorDiv = document.getElementById(elementId);
             errorDiv.textContent = message;
@@ -999,6 +1499,9 @@
             document.getElementById('lastName').value = '';
             document.getElementById('email').value = '';
             document.getElementById('historySection').style.display = 'none';
+            // Reset progress rings
+            document.getElementById('progressRing').style.strokeDashoffset = 377;
+            document.getElementById('successProgressRing').style.strokeDashoffset = 377;
             showScreen('phoneScreen');
         }
 

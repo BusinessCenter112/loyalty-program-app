@@ -171,6 +171,38 @@
             margin-bottom: 5px;
         }
 
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .rank-badge.bronze {
+            background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+            color: white;
+        }
+
+        .rank-badge.silver {
+            background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
+            color: #333;
+        }
+
+        .rank-badge.gold {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #333;
+        }
+
+        .rank-badge.platinum {
+            background: linear-gradient(135deg, #E5E4E2 0%, #A0B2C6 100%);
+            color: #333;
+        }
+
         .customer-email {
             color: #666;
             font-size: 14px;
@@ -661,6 +693,21 @@
             }
         }
 
+        // Rank system
+        function getRank(totalDropoffs) {
+            if (totalDropoffs >= 150) return { name: 'Platinum', class: 'platinum', icon: '💎' };
+            if (totalDropoffs >= 50) return { name: 'Gold', class: 'gold', icon: '🥇' };
+            if (totalDropoffs >= 25) return { name: 'Silver', class: 'silver', icon: '🥈' };
+            if (totalDropoffs >= 10) return { name: 'Bronze', class: 'bronze', icon: '🥉' };
+            return null;
+        }
+
+        function getRankBadgeHTML(totalDropoffs) {
+            const rank = getRank(totalDropoffs);
+            if (!rank) return '';
+            return `<span class="rank-badge ${rank.class}">${rank.icon} ${rank.name}</span>`;
+        }
+
         function displayCustomers(customers) {
             const customerList = document.getElementById('customerList');
             const noResults = document.getElementById('noResults');
@@ -681,9 +728,10 @@
 
                 const eligibleRewards = Math.floor(customer.total_dropoffs / 10) - customer.rewards_redeemed;
                 const dropoffsUntilReward = 10 - (customer.total_dropoffs % 10);
+                const rankBadge = getRankBadgeHTML(customer.total_dropoffs);
 
                 card.innerHTML = `
-                    <div class="customer-name">${customer.first_name} ${customer.last_name}</div>
+                    <div class="customer-name">${customer.first_name} ${customer.last_name}${rankBadge}</div>
                     <div class="customer-email">${customer.email}</div>
                     <div class="customer-stats">
                         <div class="stat">
@@ -717,8 +765,9 @@
             // Show dropoff form
             document.getElementById('customerDetail').classList.add('show');
 
-            // Display selected customer name prominently
-            document.getElementById('selectedCustomerName').textContent = `${customer.first_name} ${customer.last_name}`;
+            // Display selected customer name prominently with rank
+            const rankBadge = getRankBadgeHTML(customer.total_dropoffs);
+            document.getElementById('selectedCustomerName').innerHTML = `${customer.first_name} ${customer.last_name} ${rankBadge}`;
             document.getElementById('selectedCustomerEmail').textContent = customer.email;
 
             // Populate phone number field
