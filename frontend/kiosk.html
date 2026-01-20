@@ -206,6 +206,44 @@
             margin-top: 20px;
         }
 
+        .history-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+            text-align: left;
+        }
+
+        .history-section h3 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .history-list {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: #fff;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .history-item .date {
+            color: #333;
+        }
+
+        .history-item .qty {
+            color: #4169E1;
+            font-weight: 600;
+        }
+
         .loading {
             display: inline-block;
             width: 20px;
@@ -413,6 +451,11 @@
                     <div class="progress-fill" id="progressFill"></div>
                 </div>
                 <div id="progressText" class="info-text"></div>
+
+                <div class="history-section" id="historySection" style="display: none;">
+                    <h3>Recent Drop-offs</h3>
+                    <div class="history-list" id="historyList"></div>
+                </div>
             </div>
 
             <button id="logDropoffBtn">Log Drop-off</button>
@@ -532,6 +575,7 @@
                     const data = await response.json();
                     currentCustomer = data.customer;
                     displayCustomer(data.customer, data.eligibleRewards);
+                    loadDropoffHistory(data.customer.id);
                     showScreen('customerScreen');
                 } else if (response.status === 404) {
                     // New customer - show registration
@@ -711,6 +755,38 @@
             document.getElementById('rewardsEarned').textContent = eligibleRewards;
 
             updateProgress('progress', customer.total_dropoffs, eligibleRewards);
+        }
+
+        async function loadDropoffHistory(customerId) {
+            const historySection = document.getElementById('historySection');
+            const historyList = document.getElementById('historyList');
+
+            try {
+                const response = await fetch(`${API_URL}/customers/${customerId}`);
+                if (response.ok) {
+                    const data = await response.json();
+
+                    if (data.dropoffs && data.dropoffs.length > 0) {
+                        // Show last 5 drop-offs
+                        const recentDropoffs = data.dropoffs.slice(0, 5);
+                        historyList.innerHTML = recentDropoffs.map(d => {
+                            const date = new Date(d.date).toLocaleDateString('en-US', {
+                                month: 'short', day: 'numeric', year: 'numeric'
+                            });
+                            return `<div class="history-item">
+                                <span class="date">${date}</span>
+                                <span class="qty">${d.quantity} pkg${d.quantity > 1 ? 's' : ''}</span>
+                            </div>`;
+                        }).join('');
+                        historySection.style.display = 'block';
+                    } else {
+                        historySection.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load history:', error);
+                historySection.style.display = 'none';
+            }
         }
 
         function displaySuccess(customer, eligibleRewards) {
@@ -922,6 +998,7 @@
             document.getElementById('firstName').value = '';
             document.getElementById('lastName').value = '';
             document.getElementById('email').value = '';
+            document.getElementById('historySection').style.display = 'none';
             showScreen('phoneScreen');
         }
 

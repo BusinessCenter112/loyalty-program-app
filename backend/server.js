@@ -429,6 +429,51 @@ app.get('/api/customers', async (req, res) => {
     }
 });
 
+// Get dashboard stats
+app.get('/api/stats', async (req, res) => {
+    try {
+        // Get first day of current month
+        const now = new Date();
+        const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+
+        // Total customers
+        const totalCustomers = await pool.query('SELECT COUNT(*) FROM customers');
+
+        // New customers this month
+        const newCustomersThisMonth = await pool.query(
+            'SELECT COUNT(*) FROM customers WHERE created_at >= $1',
+            [firstOfMonth]
+        );
+
+        // Drop-offs this month
+        const dropoffsThisMonth = await pool.query(
+            'SELECT COALESCE(SUM(quantity), 0) as total FROM dropoffs WHERE date >= $1',
+            [firstOfMonth]
+        );
+
+        // Total drop-offs all time
+        const totalDropoffs = await pool.query(
+            'SELECT COALESCE(SUM(quantity), 0) as total FROM dropoffs'
+        );
+
+        // Rewards redeemed this month (we need to track this - for now use all time)
+        const totalRewardsRedeemed = await pool.query(
+            'SELECT COALESCE(SUM(rewards_redeemed), 0) as total FROM customers'
+        );
+
+        res.json({
+            totalCustomers: parseInt(totalCustomers.rows[0].count),
+            newCustomersThisMonth: parseInt(newCustomersThisMonth.rows[0].count),
+            dropoffsThisMonth: parseInt(dropoffsThisMonth.rows[0].total),
+            totalDropoffs: parseInt(totalDropoffs.rows[0].total),
+            totalRewardsRedeemed: parseInt(totalRewardsRedeemed.rows[0].total)
+        });
+    } catch (error) {
+        console.error('Stats error:', error);
+        res.status(500).json({ error: 'Failed to fetch stats', details: error.message });
+    }
+});
+
 // Update customer phone number
 app.patch('/api/customers/:id/phone', async (req, res) => {
     const { id } = req.params;
