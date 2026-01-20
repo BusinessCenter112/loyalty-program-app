@@ -1021,6 +1021,15 @@
                 return;
             }
 
+            // Unlock audio for iOS (must happen during user interaction)
+            const welcomeSound = document.getElementById('welcomeSound');
+            if (welcomeSound) {
+                welcomeSound.play().then(() => {
+                    welcomeSound.pause();
+                    welcomeSound.currentTime = 0;
+                }).catch(() => {});
+            }
+
             const button = document.getElementById('registerSubmit');
             const originalText = button.textContent;
             button.innerHTML = '<span class="loading"></span>';
