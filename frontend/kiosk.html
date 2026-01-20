@@ -687,6 +687,11 @@
     </style>
 </head>
 <body>
+    <!-- Audio Elements -->
+    <audio id="welcomeSound" preload="auto">
+        <source src="sounds/welcome.mp3" type="audio/mpeg">
+    </audio>
+
     <!-- Celebration Animation Overlay -->
     <div id="celebrationOverlay" class="celebration-overlay">
         <div id="woohooText" class="woohoo-text">Woo hoo!</div>
@@ -1224,8 +1229,9 @@
             congratsText.classList.remove('show', 'fadeout');
             congratsText.style.display = 'none';
 
-            // Show overlay with "Woo hoo!"
+            // Show overlay with "Woo hoo!" and play sound
             overlay.classList.add('active');
+            playSound('welcomeSound');
 
             // After 2.5 seconds, explode "Woo hoo!"
             setTimeout(() => {
@@ -1525,6 +1531,17 @@
                 platinum: '#A0B2C6'
             };
             return colors[rankClass] || '#666';
+        }
+
+        function playSound(soundId) {
+            const sound = document.getElementById(soundId);
+            if (sound) {
+                sound.currentTime = 0;
+                sound.play().catch(e => {
+                    // Audio play may fail if user hasn't interacted with page yet
+                    console.log('Audio play skipped:', e.message);
+                });
+            }
         }
 
         function showError(elementId, message) {
