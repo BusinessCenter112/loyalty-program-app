@@ -60,6 +60,22 @@ async function initializeDatabase() {
             console.log('Referred by column already exists or error:', error.message);
         }
 
+        // Add tier reward tracking columns
+        try {
+            await client.query(`
+                ALTER TABLE customers ADD COLUMN IF NOT EXISTS bronze_reward_claimed BOOLEAN DEFAULT FALSE
+            `);
+            await client.query(`
+                ALTER TABLE customers ADD COLUMN IF NOT EXISTS silver_reward_claimed BOOLEAN DEFAULT FALSE
+            `);
+            await client.query(`
+                ALTER TABLE customers ADD COLUMN IF NOT EXISTS gold_reward_claimed BOOLEAN DEFAULT FALSE
+            `);
+            console.log('Tier reward columns added/verified');
+        } catch (error) {
+            console.log('Tier reward columns already exist or error:', error.message);
+        }
+
         // Remove UNIQUE constraint from email if it exists
         // This allows same email with different name combinations
         try {
@@ -528,6 +544,42 @@ app.patch('/api/customers/:id/phone', async (req, res) => {
     } catch (error) {
         console.error('Update phone error:', error);
         res.status(500).json({ error: 'Failed to update phone number', details: error.message });
+    }
+});
+
+// Toggle tier reward claimed status
+app.patch('/api/customers/:id/reward', async (req, res) => {
+    const { id } = req.params;
+    const { tier, claimed } = req.body;
+
+    const validTiers = ['bronze', 'silver', 'gold'];
+    if (!validTiers.includes(tier)) {
+        return res.status(400).json({ error: 'Invalid tier. Must be bronze, silver, or gold' });
+    }
+
+    if (typeof claimed !== 'boolean') {
+        return res.status(400).json({ error: 'Claimed must be a boolean' });
+    }
+
+    try {
+        const column = `${tier}_reward_claimed`;
+        const result = await pool.query(
+            `UPDATE customers SET ${column} = $1 WHERE id = $2 RETURNING *`,
+            [claimed, parseInt(id)]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Customer not found' });
+        }
+
+        res.json({
+            success: true,
+            message: `${tier.charAt(0).toUpperCase() + tier.slice(1)} reward ${claimed ? 'marked as claimed' : 'reset'}`,
+            customer: result.rows[0]
+        });
+    } catch (error) {
+        console.error('Update reward error:', error);
+        res.status(500).json({ error: 'Failed to update reward status', details: error.message });
     }
 });
 
