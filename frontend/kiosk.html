@@ -684,6 +684,112 @@
             0% { transform: translate(0, 0) scale(1); opacity: 1; }
             100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
         }
+
+        /* Tier Rewards Display */
+        .tiers-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .tiers-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .tiers-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .tier-card {
+            border-radius: 10px;
+            padding: 12px 8px;
+            text-align: center;
+            opacity: 0.5;
+            transition: all 0.3s;
+        }
+
+        .tier-card.unlocked {
+            opacity: 1;
+            transform: scale(1.02);
+        }
+
+        .tier-card.bronze {
+            background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+            color: white;
+        }
+
+        .tier-card.silver {
+            background: linear-gradient(135deg, #C0C0C0 0%, #808080 100%);
+            color: white;
+        }
+
+        .tier-card.gold {
+            background: linear-gradient(135deg, #FFD700 0%, #DAA520 100%);
+            color: #333;
+        }
+
+        .tier-card .tier-name {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tier-card .tier-points {
+            font-size: 10px;
+            margin: 4px 0;
+            opacity: 0.9;
+        }
+
+        .tier-card .tier-rewards-list {
+            font-size: 9px;
+            text-align: left;
+            line-height: 1.3;
+            margin-top: 6px;
+        }
+
+        .tier-card .tier-rewards-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .tier-card .tier-rewards-list li {
+            margin-bottom: 2px;
+        }
+
+        .tier-card .tier-status {
+            margin-top: 6px;
+            font-size: 9px;
+            font-weight: 600;
+            padding: 3px 6px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.3);
+        }
+
+        .tier-indicator {
+            text-align: center;
+            margin-top: 12px;
+            padding: 8px;
+            background: #EFF6FF;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #4169E1;
+            font-weight: 500;
+        }
+
+        .tier-note {
+            font-size: 9px;
+            color: #888;
+            margin-top: 8px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -814,6 +920,11 @@
                 <input type="tel" id="registerPhone" placeholder="(555) 123-4567" readonly inputmode="tel" pattern="[0-9]*">
             </div>
 
+            <div class="form-group">
+                <label>Referred By (Optional)</label>
+                <input type="text" id="referredBy" placeholder="Name of person who referred you">
+            </div>
+
             <button id="registerSubmit">Register & Log Drop-off</button>
             <button class="secondary" id="backFromRegister">Cancel</button>
 
@@ -861,6 +972,53 @@
                 </div>
                 <div id="rewardBadge" style="display: none;">
                     <div class="reward-badge">🎉 You earned a reward!</div>
+                </div>
+
+                <div class="tiers-section">
+                    <div class="tiers-title">Rewards Tiers</div>
+                    <div class="tiers-container">
+                        <div class="tier-card bronze" id="successBronzeTier">
+                            <div class="tier-name">Bronze</div>
+                            <div class="tier-points">10-24 drop-offs</div>
+                            <div class="tier-rewards-list">
+                                <ul>
+                                    <li>• 10% Off Shipping</li>
+                                    <li>• 5 Free B/W Copies</li>
+                                    <li>• 10% Off Fax/Shred</li>
+                                    <li>• 10% Off Notary*</li>
+                                </ul>
+                            </div>
+                            <div class="tier-status" id="successBronzeStatus">Locked</div>
+                        </div>
+                        <div class="tier-card silver" id="successSilverTier">
+                            <div class="tier-name">Silver</div>
+                            <div class="tier-points">25-49 drop-offs</div>
+                            <div class="tier-rewards-list">
+                                <ul>
+                                    <li>• 10% Off Shipping</li>
+                                    <li>• 10 Free Copies</li>
+                                    <li>• 10% Off Fax/Shred</li>
+                                    <li>• 15% Off Notary*</li>
+                                </ul>
+                            </div>
+                            <div class="tier-status" id="successSilverStatus">Locked</div>
+                        </div>
+                        <div class="tier-card gold" id="successGoldTier">
+                            <div class="tier-name">Gold</div>
+                            <div class="tier-points">50+ drop-offs</div>
+                            <div class="tier-rewards-list">
+                                <ul>
+                                    <li>• 10% Off Shipping</li>
+                                    <li>• 20 Free B/W Copies</li>
+                                    <li>• Free Notary*</li>
+                                    <li>• Free Packing + Box</li>
+                                </ul>
+                            </div>
+                            <div class="tier-status" id="successGoldStatus">Locked</div>
+                        </div>
+                    </div>
+                    <div class="tier-indicator" id="successTierIndicator"></div>
+                    <div class="tier-note">*Notary must be scheduled in advance. Choose 1 reward per tier.</div>
                 </div>
             </div>
 
@@ -994,6 +1152,7 @@
             const firstName = document.getElementById('firstName').value.trim();
             const lastName = document.getElementById('lastName').value.trim();
             const email = document.getElementById('email').value.trim();
+            const referredBy = document.getElementById('referredBy').value.trim();
 
             if (!firstName || !lastName || !email) {
                 showError('registerError', 'Please fill in all fields');
@@ -1028,7 +1187,8 @@
                         firstName,
                         lastName,
                         email,
-                        phoneNumber: currentPhone
+                        phoneNumber: currentPhone,
+                        referredBy: referredBy || null
                     })
                 });
 
@@ -1176,6 +1336,64 @@
             } else {
                 document.getElementById('rewardBadge').style.display = 'none';
             }
+
+            // Update tier display
+            updateTierDisplay(customer);
+        }
+
+        function updateTierDisplay(customer) {
+            const dropoffs = customer.total_dropoffs;
+            const bronzeTier = document.getElementById('successBronzeTier');
+            const silverTier = document.getElementById('successSilverTier');
+            const goldTier = document.getElementById('successGoldTier');
+            const bronzeStatus = document.getElementById('successBronzeStatus');
+            const silverStatus = document.getElementById('successSilverStatus');
+            const goldStatus = document.getElementById('successGoldStatus');
+            const tierIndicator = document.getElementById('successTierIndicator');
+
+            // Reset classes
+            bronzeTier.classList.remove('unlocked');
+            silverTier.classList.remove('unlocked');
+            goldTier.classList.remove('unlocked');
+
+            // Determine current tier and update display
+            let currentTier = 'None';
+            let nextTierMsg = '';
+
+            if (dropoffs >= 50) {
+                currentTier = 'Gold';
+                bronzeTier.classList.add('unlocked');
+                silverTier.classList.add('unlocked');
+                goldTier.classList.add('unlocked');
+                bronzeStatus.textContent = customer.bronze_reward_claimed ? 'Claimed' : 'Unlocked';
+                silverStatus.textContent = customer.silver_reward_claimed ? 'Claimed' : 'Unlocked';
+                goldStatus.textContent = customer.gold_reward_claimed ? 'Claimed' : 'Available!';
+                nextTierMsg = "You've reached the highest tier!";
+            } else if (dropoffs >= 25) {
+                currentTier = 'Silver';
+                bronzeTier.classList.add('unlocked');
+                silverTier.classList.add('unlocked');
+                bronzeStatus.textContent = customer.bronze_reward_claimed ? 'Claimed' : 'Unlocked';
+                silverStatus.textContent = customer.silver_reward_claimed ? 'Claimed' : 'Available!';
+                goldStatus.textContent = `${50 - dropoffs} to unlock`;
+                nextTierMsg = `${50 - dropoffs} drop-offs until Gold!`;
+            } else if (dropoffs >= 10) {
+                currentTier = 'Bronze';
+                bronzeTier.classList.add('unlocked');
+                bronzeStatus.textContent = customer.bronze_reward_claimed ? 'Claimed' : 'Available!';
+                silverStatus.textContent = `${25 - dropoffs} to unlock`;
+                goldStatus.textContent = `${50 - dropoffs} to unlock`;
+                nextTierMsg = `${25 - dropoffs} drop-offs until Silver!`;
+            } else {
+                bronzeStatus.textContent = `${10 - dropoffs} to unlock`;
+                silverStatus.textContent = `${25 - dropoffs} to unlock`;
+                goldStatus.textContent = `${50 - dropoffs} to unlock`;
+                nextTierMsg = `${10 - dropoffs} drop-offs until Bronze!`;
+            }
+
+            tierIndicator.textContent = currentTier !== 'None'
+                ? `Current Tier: ${currentTier} | ${nextTierMsg}`
+                : nextTierMsg;
         }
 
         function updateProgress(prefix, totalDropoffs, eligibleRewards) {
@@ -1553,6 +1771,7 @@
             document.getElementById('firstName').value = '';
             document.getElementById('lastName').value = '';
             document.getElementById('email').value = '';
+            document.getElementById('referredBy').value = '';
             document.getElementById('historySection').style.display = 'none';
             // Reset progress rings
             document.getElementById('progressRing').style.strokeDashoffset = 377;
