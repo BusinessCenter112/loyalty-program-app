@@ -2,7 +2,7 @@ const QRCode = require('qrcode');
 const fs = require('fs');
 const path = require('path');
 
-const url = 'https://web20rewards.onrender.com/';
+const url = 'https://loyalty-program-app-xb1v.onrender.com/';
 const outputPath = path.join(__dirname, 'loyalty-qr-code.png');
 
 // Generate QR code

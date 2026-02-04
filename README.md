@@ -6,8 +6,8 @@ A cloud-based loyalty program app for tracking package drop-offs and rewards. Ac
 
 **Your app is live and ready to use!**
 
-- **Customer Registration:** https://web20rewards.onrender.com/
-- **Staff Dashboard:** https://web20rewards.onrender.com/staff-login.html
+- **Customer Registration:** https://loyalty-program-app-xb1v.onrender.com/
+- **Staff Dashboard:** https://loyalty-program-app-xb1v.onrender.com/staff-login.html
 
 Scan the QR code in `qr-code-printable.html` or share the link directly with customers!
 
@@ -37,7 +37,7 @@ A QR code has been generated and is ready to print:
 2. Click "Print This Page" to print
 3. Display it where customers can scan it
 
-The QR code points to: **https://web20rewards.onrender.com/**
+The QR code points to: **https://loyalty-program-app-xb1v.onrender.com/**
 
 When customers scan it, they'll be able to register instantly from their phones!
 
@@ -53,7 +53,7 @@ When customers scan it, they'll be able to register instantly from their phones!
 
 ### For Staff
 
-1. Go to https://web20rewards.onrender.com/staff-login.html
+1. Go to https://loyalty-program-app-xb1v.onrender.com/staff-login.html
 2. Enter your PIN (1157, 5600, or 0725)
 3. **All customers appear automatically** on the dashboard
 4. **Start typing** in the search box to filter customers:
