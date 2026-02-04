@@ -50,6 +50,16 @@ async function initializeDatabase() {
             console.log('Phone number column already exists or error:', error.message);
         }
 
+        // Add referred_by column if it doesn't exist (for existing databases)
+        try {
+            await client.query(`
+                ALTER TABLE customers ADD COLUMN IF NOT EXISTS referred_by VARCHAR(255)
+            `);
+            console.log('Referred by column added/verified');
+        } catch (error) {
+            console.log('Referred by column already exists or error:', error.message);
+        }
+
         // Remove UNIQUE constraint from email if it exists
         // This allows same email with different name combinations
         try {
@@ -128,10 +138,10 @@ app.get('/api/health', async (req, res) => {
 
 // Customer registration
 app.post('/api/customers/register', async (req, res) => {
-    const { firstName, lastName, email, phoneNumber } = req.body;
+    const { firstName, lastName, email, phoneNumber, referredBy } = req.body;
 
     if (!firstName || !lastName || !email || !phoneNumber) {
-        return res.status(400).json({ error: 'All fields are required' });
+        return res.status(400).json({ error: 'First name, last name, email, and phone number are required' });
     }
 
     // Validate phone number format (should be 10 digits)
@@ -181,10 +191,10 @@ app.post('/api/customers/register', async (req, res) => {
 
         // Create new customer
         const result = await pool.query(
-            `INSERT INTO customers (first_name, last_name, email, phone_number, total_dropoffs, rewards_redeemed)
-             VALUES ($1, $2, $3, $4, 0, 0)
+            `INSERT INTO customers (first_name, last_name, email, phone_number, total_dropoffs, rewards_redeemed, referred_by)
+             VALUES ($1, $2, $3, $4, 0, 0, $5)
              RETURNING *`,
-            [firstName, lastName, email, cleanPhone]
+            [firstName, lastName, email, cleanPhone, referredBy || null]
         );
 
         res.json({
