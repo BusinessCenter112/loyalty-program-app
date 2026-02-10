@@ -793,12 +793,13 @@
 
         /* Inline Tier Cards on Success Screen - Full Width Style */
         .inline-tiers-section {
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100vw;
             margin-top: 25px;
-            margin-left: -40px;
-            margin-right: -40px;
             padding: 30px 20px;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            border-radius: 0;
         }
 
         .inline-tiers-title {
@@ -827,8 +828,6 @@
 
         @media (max-width: 600px) {
             .inline-tiers-section {
-                margin-left: -20px;
-                margin-right: -20px;
                 padding: 25px 15px;
             }
             .inline-tiers-container {
