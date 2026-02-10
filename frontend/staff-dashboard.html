@@ -641,6 +641,11 @@
     </style>
 </head>
 <body>
+    <!-- Audio Elements -->
+    <audio id="dropoffSound" preload="auto">
+        <source src="sounds/dropoffsuccess.mp3" type="audio/mpeg">
+    </audio>
+
     <!-- Milestone Celebration Overlay -->
     <div id="milestoneOverlay" class="celebration-overlay">
         <div class="milestone-content">
@@ -1016,6 +1021,9 @@
                 const data = await response.json();
 
                 if (data.success) {
+                    // Play drop-off success sound
+                    playSound('dropoffSound');
+
                     // Check for milestone celebration
                     const milestone = checkMilestone(data.customer.total_dropoffs);
                     if (milestone) {
@@ -1308,6 +1316,16 @@
         function logout() {
             sessionStorage.clear();
             window.location.href = 'staff-login.html';
+        }
+
+        function playSound(soundId) {
+            const sound = document.getElementById(soundId);
+            if (sound) {
+                sound.currentTime = 0;
+                sound.play().catch(e => {
+                    console.log('Audio play skipped:', e.message);
+                });
+            }
         }
 
         // Milestone celebration system

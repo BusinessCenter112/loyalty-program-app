@@ -797,6 +797,9 @@
     <audio id="welcomeSound" preload="auto">
         <source src="sounds/welcome.mp3" type="audio/mpeg">
     </audio>
+    <audio id="dropoffSound" preload="auto">
+        <source src="sounds/dropoffsuccess.mp3" type="audio/mpeg">
+    </audio>
 
     <!-- Celebration Animation Overlay -->
     <div id="celebrationOverlay" class="celebration-overlay">
@@ -1118,6 +1121,9 @@
                     const data = await response.json();
                     displaySuccess(data.customer, data.eligibleRewards);
 
+                    // Play drop-off success sound
+                    playSound('dropoffSound');
+
                     // Check for rank-up first (takes priority)
                     const rankUp = checkRankUp(oldTotal, data.customer.total_dropoffs);
                     if (rankUp) {
@@ -1212,6 +1218,9 @@
                     if (dropoffResponse.ok) {
                         const dropoffData = await dropoffResponse.json();
                         displaySuccess(dropoffData.customer, dropoffData.eligibleRewards);
+
+                        // Play drop-off success sound
+                        playSound('dropoffSound');
 
                         // Check for milestone (unlikely on first drop-off, but just in case)
                         const milestone = checkMilestone(dropoffData.customer.total_dropoffs);
