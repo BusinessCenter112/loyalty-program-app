@@ -791,85 +791,112 @@
             text-align: center;
         }
 
-        /* Inline Tier Cards on Success Screen */
+        /* Inline Tier Cards on Success Screen - Full Width Style */
         .inline-tiers-section {
             margin-top: 25px;
-            padding-top: 20px;
-            border-top: 2px solid #e0e0e0;
+            margin-left: -40px;
+            margin-right: -40px;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 0;
         }
 
         .inline-tiers-title {
-            font-size: 22px;
+            font-size: 36px;
             font-weight: bold;
-            color: #333;
+            color: #FFD700;
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .inline-tiers-subtitle {
+            font-size: 16px;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 25px;
         }
 
         .inline-tiers-container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
+            gap: 15px;
+            max-width: 800px;
+            margin: 0 auto 20px auto;
         }
 
-        @media (max-width: 500px) {
+        @media (max-width: 600px) {
+            .inline-tiers-section {
+                margin-left: -20px;
+                margin-right: -20px;
+                padding: 25px 15px;
+            }
             .inline-tiers-container {
                 grid-template-columns: 1fr;
-                gap: 10px;
+                gap: 12px;
+            }
+            .inline-tiers-title {
+                font-size: 28px;
             }
         }
 
         .inline-tier-card {
-            border-radius: 12px;
-            padding: 15px 12px;
+            border-radius: 16px;
+            padding: 20px 15px;
             text-align: center;
             opacity: 0.6;
             transition: all 0.3s;
+            border: 3px solid rgba(255, 255, 255, 0.3);
         }
 
         .inline-tier-card.unlocked {
             opacity: 1;
             transform: scale(1.02);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.6);
         }
 
         .inline-tier-card.bronze {
             background: linear-gradient(135deg, #E8A04C 0%, #CD7F32 100%);
             color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         .inline-tier-card.silver {
             background: linear-gradient(135deg, #E8E8E8 0%, #C0C0C0 100%);
             color: #333;
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
         }
 
         .inline-tier-card.gold {
             background: linear-gradient(135deg, #FFE55C 0%, #FFD700 100%);
             color: #333;
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
         }
 
         .inline-tier-icon {
-            font-size: 32px;
-            margin-bottom: 5px;
+            font-size: 42px;
+            margin-bottom: 8px;
         }
 
         .inline-tier-name {
-            font-size: 16px;
+            font-size: 24px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
         }
 
         .inline-tier-points {
-            font-size: 11px;
-            margin: 5px 0;
+            font-size: 14px;
+            margin-bottom: 12px;
             opacity: 0.9;
         }
 
         .inline-tier-rewards {
-            font-size: 11px;
+            font-size: 14px;
             text-align: left;
-            line-height: 1.4;
+            line-height: 1.5;
         }
 
         .inline-tier-rewards ul {
@@ -879,34 +906,34 @@
         }
 
         .inline-tier-rewards li {
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
 
         .inline-tier-status {
-            margin-top: 8px;
-            font-size: 11px;
+            margin-top: 12px;
+            font-size: 13px;
             font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.4);
+            padding: 6px 14px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.35);
             display: inline-block;
         }
 
         .inline-tier-indicator {
             text-align: center;
-            margin-top: 12px;
-            padding: 10px;
-            background: #EFF6FF;
-            border-radius: 8px;
-            font-size: 14px;
-            color: #4169E1;
+            max-width: 500px;
+            margin: 0 auto 12px auto;
+            padding: 12px 20px;
+            background: rgba(65, 105, 225, 0.7);
+            border-radius: 10px;
+            font-size: 16px;
+            color: white;
             font-weight: 500;
         }
 
         .inline-tier-note {
-            font-size: 10px;
-            color: #888;
-            margin-top: 10px;
+            font-size: 12px;
+            color: #ccc;
             text-align: center;
         }
 
@@ -1347,6 +1374,7 @@
                 <!-- Inline Tier Cards -->
                 <div class="inline-tiers-section">
                     <div class="inline-tiers-title">🏆 Rewards Tiers</div>
+                    <div class="inline-tiers-subtitle">Earn rewards as you drop off more packages!</div>
                     <div class="inline-tiers-container">
                         <div class="inline-tier-card bronze" id="inlineBronzeTier">
                             <div class="inline-tier-icon">🥉</div>
