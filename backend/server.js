@@ -614,6 +614,56 @@ app.delete('/api/customers/:id', async (req, res) => {
     }
 });
 
+// Delete a specific drop-off
+app.delete('/api/dropoffs/:id', async (req, res) => {
+    const { id } = req.params;
+
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        // Find the dropoff
+        const dropoffResult = await client.query(
+            'SELECT * FROM dropoffs WHERE id = $1',
+            [parseInt(id)]
+        );
+
+        if (dropoffResult.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ error: 'Drop-off not found' });
+        }
+
+        const dropoff = dropoffResult.rows[0];
+
+        // Delete the dropoff
+        await client.query('DELETE FROM dropoffs WHERE id = $1', [parseInt(id)]);
+
+        // Update customer's total_dropoffs
+        const customerResult = await client.query(
+            'UPDATE customers SET total_dropoffs = total_dropoffs - $1 WHERE id = $2 RETURNING *',
+            [dropoff.quantity, dropoff.customer_id]
+        );
+
+        await client.query('COMMIT');
+
+        const customer = customerResult.rows[0];
+        const eligibleRewards = Math.floor(customer.total_dropoffs / 10) - customer.rewards_redeemed;
+
+        res.json({
+            success: true,
+            message: 'Drop-off deleted successfully',
+            customer: customer,
+            eligibleRewards: eligibleRewards
+        });
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Delete dropoff error:', error);
+        res.status(500).json({ error: 'Failed to delete drop-off', details: error.message });
+    } finally {
+        client.release();
+    }
+});
+
 // Initialize database and start server
 initializeDatabase().then(() => {
     app.listen(PORT, () => {
