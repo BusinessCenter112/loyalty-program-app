@@ -79,9 +79,13 @@
 
         .success-top-section {
             flex: 0 0 auto;
+            position: sticky;
+            top: 0;
             padding: 30px 20px;
             text-align: center;
             color: white;
+            background: linear-gradient(135deg, #4169E1 0%, #2855C5 100%);
+            z-index: 10;
         }
 
         .success-top-section .success-icon {
@@ -134,10 +138,16 @@
             border-radius: 25px;
             cursor: pointer;
             margin-top: 15px;
+            position: relative;
+            z-index: 20;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
-        .success-done-btn:hover {
+        .success-done-btn:hover,
+        .success-done-btn:active {
             transform: scale(1.05);
+            background: #f0f0f0;
         }
 
         .success-bottom-section {
@@ -1248,61 +1258,6 @@
                 <div class="badge-name"></div>
                 <div class="badge-text">status!</div>
             </div>
-        </div>
-    </div>
-
-    <!-- Full-screen Tier Overlay -->
-    <div id="tierOverlay" class="tier-overlay">
-        <div class="tier-overlay-content">
-            <div class="tier-overlay-title">🏆 Rewards Tiers</div>
-            <div class="tier-overlay-subtitle">Earn rewards as you drop off more packages!</div>
-            <div class="tier-overlay-cards">
-                <div class="tier-overlay-card bronze" id="overlayBronzeTier">
-                    <div class="tier-icon">🥉</div>
-                    <div class="tier-name">Bronze</div>
-                    <div class="tier-points">10-24 drop-offs</div>
-                    <div class="tier-rewards-list">
-                        <ul>
-                            <li>• 10% Off Shipping</li>
-                            <li>• 5 Free B/W Copies</li>
-                            <li>• 10% Off Fax/Shred</li>
-                            <li>• 10% Off Notary*</li>
-                        </ul>
-                    </div>
-                    <div class="tier-status" id="overlayBronzeStatus">Locked</div>
-                </div>
-                <div class="tier-overlay-card silver" id="overlaySilverTier">
-                    <div class="tier-icon">🥈</div>
-                    <div class="tier-name">Silver</div>
-                    <div class="tier-points">25-49 drop-offs</div>
-                    <div class="tier-rewards-list">
-                        <ul>
-                            <li>• 10% Off Shipping</li>
-                            <li>• 10 Free Copies</li>
-                            <li>• 10% Off Fax/Shred</li>
-                            <li>• 15% Off Notary*</li>
-                        </ul>
-                    </div>
-                    <div class="tier-status" id="overlaySilverStatus">Locked</div>
-                </div>
-                <div class="tier-overlay-card gold" id="overlayGoldTier">
-                    <div class="tier-icon">🥇</div>
-                    <div class="tier-name">Gold</div>
-                    <div class="tier-points">50+ drop-offs</div>
-                    <div class="tier-rewards-list">
-                        <ul>
-                            <li>• 10% Off Shipping</li>
-                            <li>• 20 Free B/W Copies</li>
-                            <li>• Free Notary*</li>
-                            <li>• Free Packing + Box</li>
-                        </ul>
-                    </div>
-                    <div class="tier-status" id="overlayGoldStatus">Locked</div>
-                </div>
-            </div>
-            <div class="tier-overlay-indicator" id="overlayTierIndicator"></div>
-            <div class="tier-overlay-note">*Notary must be scheduled in advance. Choose 1 reward per tier.</div>
-            <button class="tier-overlay-close" onclick="closeTierOverlay()">Got it!</button>
         </div>
     </div>
 
