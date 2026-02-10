@@ -1293,6 +1293,15 @@
         document.getElementById('logDropoffBtn').addEventListener('click', async () => {
             if (!currentCustomer) return;
 
+            // Unlock audio for iOS (must happen during user interaction)
+            const dropoffSound = document.getElementById('dropoffSound');
+            if (dropoffSound) {
+                dropoffSound.play().then(() => {
+                    dropoffSound.pause();
+                    dropoffSound.currentTime = 0;
+                }).catch(() => {});
+            }
+
             // Store old total for rank-up check
             const oldTotal = currentCustomer.total_dropoffs;
 
