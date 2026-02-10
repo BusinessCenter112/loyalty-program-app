@@ -1241,11 +1241,33 @@
 
         let currentCustomer = null;
         let currentPhone = '';
+        let successScreenTimer = null;
+        const SUCCESS_SCREEN_TIMEOUT = 10000; // 10 seconds
 
         // Screen management
         function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
+        }
+
+        // Show success screen with auto-return timer
+        function showSuccessScreen() {
+            showSuccessScreen();
+            startSuccessTimer();
+        }
+
+        function startSuccessTimer() {
+            clearSuccessTimer();
+            successScreenTimer = setTimeout(() => {
+                resetToStart();
+            }, SUCCESS_SCREEN_TIMEOUT);
+        }
+
+        function clearSuccessTimer() {
+            if (successScreenTimer) {
+                clearTimeout(successScreenTimer);
+                successScreenTimer = null;
+            }
         }
 
         // Format phone number as user types
@@ -1340,17 +1362,17 @@
                     const rankUp = checkRankUp(oldTotal, data.customer.total_dropoffs);
                     if (rankUp) {
                         playRankUpCelebration(rankUp.oldRank, rankUp.newRank, () => {
-                            showScreen('successScreen');
+                            showSuccessScreen();
                         });
                     } else {
                         // Check for milestone celebration
                         const milestone = checkMilestone(data.customer.total_dropoffs);
                         if (milestone) {
                             playMilestoneCelebration(milestone, () => {
-                                showScreen('successScreen');
+                                showSuccessScreen();
                             });
                         } else {
-                            showScreen('successScreen');
+                            showSuccessScreen();
                         }
                     }
                 } else {
@@ -1439,12 +1461,12 @@
                         if (milestone) {
                             // Play milestone celebration instead of regular celebration
                             playMilestoneCelebration(milestone, () => {
-                                showScreen('successScreen');
+                                showSuccessScreen();
                             });
                         } else {
                             // Play regular welcome celebration, then show success screen
                             playCelebration(() => {
-                                showScreen('successScreen');
+                                showSuccessScreen();
                             });
                         }
                     } else {
@@ -1564,12 +1586,19 @@
 
         // Tier overlay functions
         function showTierOverlay() {
+            // Pause the auto-return timer while viewing tiers
+            clearSuccessTimer();
             updateOverlayTierDisplay(currentCustomer);
             document.getElementById('tierOverlay').classList.add('active');
         }
 
         function closeTierOverlay() {
             document.getElementById('tierOverlay').classList.remove('active');
+            // Restart the auto-return timer if we're on the success screen
+            const successScreen = document.getElementById('successScreen');
+            if (successScreen.classList.contains('active')) {
+                startSuccessTimer();
+            }
         }
 
         function updateTierDisplay(customer) {
@@ -2004,6 +2033,11 @@
         }
 
         function resetToStart() {
+            // Clear any active timers
+            clearSuccessTimer();
+            // Close tier overlay if open
+            closeTierOverlay();
+
             currentCustomer = null;
             currentPhone = '';
             document.getElementById('phoneInput').value = '';
