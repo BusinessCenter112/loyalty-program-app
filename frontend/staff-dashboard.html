@@ -713,6 +713,7 @@
             <div class="selected-customer-header">
                 <h2 id="selectedCustomerName"></h2>
                 <div class="customer-email-display" id="selectedCustomerEmail"></div>
+                <div id="selectedCustomerReferral" style="margin-top: 6px; font-size: 14px; color: #4169E1; font-weight: 500; display: none;"></div>
             </div>
 
             <div class="reward-banner" id="rewardBanner"></div>
@@ -907,9 +908,14 @@
                 const dropoffsUntilReward = 10 - (customer.total_dropoffs % 10);
                 const rankBadge = getRankBadgeHTML(customer.total_dropoffs);
 
+                const referralInfo = customer.referred_by
+                    ? `<div class="customer-email" style="color: #4169E1;">Referred by: ${customer.referred_by}</div>`
+                    : '';
+
                 card.innerHTML = `
                     <div class="customer-name">${customer.first_name} ${customer.last_name}${rankBadge}</div>
                     <div class="customer-email">${customer.email}</div>
+                    ${referralInfo}
                     <div class="customer-stats">
                         <div class="stat">
                             <span class="stat-label">Drop-offs:</span>
@@ -946,6 +952,15 @@
             const rankBadge = getRankBadgeHTML(customer.total_dropoffs);
             document.getElementById('selectedCustomerName').innerHTML = `${customer.first_name} ${customer.last_name} ${rankBadge}`;
             document.getElementById('selectedCustomerEmail').textContent = customer.email;
+
+            // Show referral info
+            const referralEl = document.getElementById('selectedCustomerReferral');
+            if (customer.referred_by) {
+                referralEl.textContent = `Referred by: ${customer.referred_by}`;
+                referralEl.style.display = 'block';
+            } else {
+                referralEl.style.display = 'none';
+            }
 
             // Populate phone number field
             const phoneInput = document.getElementById('customerPhone');
