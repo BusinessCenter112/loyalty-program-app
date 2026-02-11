@@ -1271,7 +1271,7 @@
             <p class="subtitle">Enter your phone number to get started</p>
 
             <input type="tel" id="phoneInput" placeholder="(555) 123-4567" autocomplete="tel" inputmode="tel" pattern="[0-9]*">
-            <button id="phoneSubmit">Continue</button>
+            <button id="phoneSubmit">Log Drop-off</button>
 
             <div id="phoneError" class="error-message" style="display: none;"></div>
 
@@ -1518,7 +1518,7 @@
             }
         });
 
-        // Phone submission
+        // Phone submission - looks up customer and logs drop-off in one step
         document.getElementById('phoneSubmit').addEventListener('click', async () => {
             const phoneInput = document.getElementById('phoneInput');
             const phone = phoneInput.value.replace(/\D/g, '');
@@ -1530,24 +1530,86 @@
 
             currentPhone = phone;
 
+            const button = document.getElementById('phoneSubmit');
+            const originalText = button.textContent;
+            button.innerHTML = '<span class="loading"></span>';
+            button.disabled = true;
+
+            // Unlock audio for iOS (must happen during user interaction)
+            const dropoffSound = document.getElementById('dropoffSound');
+            if (dropoffSound) {
+                dropoffSound.play().then(() => {
+                    dropoffSound.pause();
+                    dropoffSound.currentTime = 0;
+                }).catch(() => {});
+            }
+
             try {
                 const response = await fetch(`${API_URL}/customers/phone/${phone}`);
 
                 if (response.ok) {
                     const data = await response.json();
                     currentCustomer = data.customer;
-                    displayCustomer(data.customer, data.eligibleRewards);
-                    loadDropoffHistory(data.customer.id);
-                    showScreen('customerScreen');
+                    const oldTotal = currentCustomer.total_dropoffs;
+
+                    // Immediately log the drop-off
+                    const today = new Date().toISOString().split('T')[0];
+                    const dropoffResponse = await fetch(`${API_URL}/dropoffs`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            customerId: currentCustomer.id,
+                            quantity: 1,
+                            date: today,
+                            staffPin: 'KIOSK'
+                        })
+                    });
+
+                    if (dropoffResponse.ok) {
+                        const dropoffData = await dropoffResponse.json();
+                        displaySuccess(dropoffData.customer, dropoffData.eligibleRewards);
+
+                        button.textContent = originalText;
+                        button.disabled = false;
+
+                        playSound('dropoffSound');
+
+                        // Check for rank-up first (takes priority)
+                        const rankUp = checkRankUp(oldTotal, dropoffData.customer.total_dropoffs);
+                        if (rankUp) {
+                            playRankUpCelebration(rankUp.oldRank, rankUp.newRank, () => {
+                                showSuccessScreen();
+                            });
+                        } else {
+                            const milestone = checkMilestone(dropoffData.customer.total_dropoffs);
+                            if (milestone) {
+                                playMilestoneCelebration(milestone, () => {
+                                    showSuccessScreen();
+                                });
+                            } else {
+                                showSuccessScreen();
+                            }
+                        }
+                    } else {
+                        showError('phoneError', 'Failed to log drop-off. Please try again.');
+                        button.textContent = originalText;
+                        button.disabled = false;
+                    }
                 } else if (response.status === 404) {
                     // New customer - show registration
                     document.getElementById('registerPhone').value = phoneInput.value;
                     showScreen('registerScreen');
+                    button.textContent = originalText;
+                    button.disabled = false;
                 } else {
                     showError('phoneError', 'Error looking up phone number');
+                    button.textContent = originalText;
+                    button.disabled = false;
                 }
             } catch (error) {
                 showError('phoneError', 'Connection error. Please try again.');
+                button.textContent = originalText;
+                button.disabled = false;
             }
         });
 
