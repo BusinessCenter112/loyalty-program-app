@@ -70,30 +70,30 @@
             display: none;
             flex-direction: column;
             z-index: 100;
-            overflow-y: auto;
         }
 
         #successScreen.active {
             display: flex;
         }
 
-        .success-top-section {
-            flex: 0 0 auto;
-            position: sticky;
-            top: 0;
-            padding: 30px 20px;
-            text-align: center;
-            color: white;
-            background: linear-gradient(135deg, #4169E1 0%, #2855C5 100%);
-            z-index: 10;
+        .success-scroll {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
-        .success-top-section .success-icon {
+        .success-header {
+            padding: 30px 20px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .success-header .success-icon {
             font-size: 60px;
             margin-bottom: 10px;
         }
 
-        .success-top-section h1 {
+        .success-header h1 {
             color: white;
             font-size: 32px;
             margin-bottom: 20px;
@@ -128,31 +128,33 @@
             margin-top: 10px;
         }
 
+        .success-done-bar {
+            flex-shrink: 0;
+            padding: 15px 20px;
+            text-align: center;
+            background: linear-gradient(0deg, rgba(40,85,197,1) 0%, rgba(40,85,197,0.95) 100%);
+        }
+
         .success-done-btn {
             background: white;
             color: #4169E1;
             border: none;
-            padding: 12px 40px;
-            font-size: 18px;
+            padding: 16px 60px;
+            font-size: 20px;
             font-weight: bold;
-            border-radius: 25px;
+            border-radius: 30px;
             cursor: pointer;
-            margin-top: 15px;
-            position: relative;
-            z-index: 20;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
+            width: auto;
+            margin-bottom: 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
         .success-done-btn:hover,
         .success-done-btn:active {
             transform: scale(1.05);
             background: #f0f0f0;
-        }
-
-        .success-bottom-section {
-            flex: 1;
-            width: 100%;
         }
 
         input[type="tel"],
@@ -890,7 +892,7 @@
         /* Inline Tier Cards on Success Screen - Full Width Style */
         .inline-tiers-section {
             width: 100%;
-            padding: 30px 20px 80px 20px;
+            padding: 25px 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
@@ -1366,31 +1368,30 @@
 
         <!-- Success Screen - Full Screen Layout -->
         <div id="successScreen" class="screen">
-            <div class="success-top-section">
-                <div class="success-icon">✅</div>
-                <h1>Drop-off Logged!</h1>
-                <div id="successRank" class="rank-badge no-rank" style="display: none;">
-                    <span class="rank-icon"></span>
-                    <span class="rank-name"></span>
-                </div>
-                <div class="success-stats">
-                    <div class="success-stat">
-                        <div class="success-stat-number" id="successDropoffs">0</div>
-                        <div class="success-stat-label">Total Drop-offs</div>
+            <div class="success-scroll">
+                <div class="success-header">
+                    <div class="success-icon">✅</div>
+                    <h1>Drop-off Logged!</h1>
+                    <div id="successRank" class="rank-badge no-rank" style="display: none;">
+                        <span class="rank-icon"></span>
+                        <span class="rank-name"></span>
                     </div>
-                    <div class="success-stat">
-                        <div class="success-stat-number" id="successRewards">0</div>
-                        <div class="success-stat-label">Rewards Available</div>
+                    <div class="success-stats">
+                        <div class="success-stat">
+                            <div class="success-stat-number" id="successDropoffs">0</div>
+                            <div class="success-stat-label">Total Drop-offs</div>
+                        </div>
+                        <div class="success-stat">
+                            <div class="success-stat-number" id="successRewards">0</div>
+                            <div class="success-stat-label">Rewards Available</div>
+                        </div>
+                    </div>
+                    <div class="success-progress-text" id="successProgressText"></div>
+                    <div id="rewardBadge" style="display: none;">
+                        <div class="reward-badge">🎉 You earned a reward!</div>
                     </div>
                 </div>
-                <div class="success-progress-text" id="successProgressText"></div>
-                <div id="rewardBadge" style="display: none;">
-                    <div class="reward-badge">🎉 You earned a reward!</div>
-                </div>
-                <button class="success-done-btn" id="doneBtn">Done</button>
-            </div>
 
-            <div class="success-bottom-section">
                 <!-- Inline Tier Cards -->
                 <div class="inline-tiers-section">
                     <div class="inline-tiers-title">🏆 Rewards Tiers</div>
@@ -1442,6 +1443,10 @@
                     <div class="inline-tier-indicator" id="inlineTierIndicator"></div>
                     <div class="inline-tier-note">*Notary must be scheduled in advance. Choose 1 reward per tier.</div>
                 </div>
+            </div>
+
+            <div class="success-done-bar">
+                <button class="success-done-btn" id="doneBtn">Done</button>
             </div>
         </div>
 
@@ -2339,9 +2344,11 @@
             document.getElementById('email').value = '';
             document.getElementById('referredBy').value = '';
             document.getElementById('historySection').style.display = 'none';
-            // Reset progress rings
+            // Reset progress ring
             document.getElementById('progressRing').style.strokeDashoffset = 377;
-            document.getElementById('successProgressRing').style.strokeDashoffset = 377;
+            // Reset success screen scroll position
+            const successScroll = document.querySelector('.success-scroll');
+            if (successScroll) successScroll.scrollTop = 0;
             showScreen('phoneScreen');
         }
 
