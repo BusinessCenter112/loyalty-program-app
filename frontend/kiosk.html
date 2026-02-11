@@ -1463,6 +1463,16 @@
 
         // Screen management
         function showScreen(screenId) {
+            // Dismiss keyboard and reset viewport
+            document.activeElement.blur();
+            window.scrollTo(0, 0);
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+            // Force viewport reset after keyboard closes
+            setTimeout(() => {
+                window.scrollTo(0, 0);
+            }, 100);
+
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
         }
