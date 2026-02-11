@@ -1755,9 +1755,6 @@
                         button.textContent = originalText;
                         button.disabled = false;
 
-                        // Play drop-off success sound
-                        playSound('dropoffSound');
-
                         // Check for milestone (unlikely on first drop-off, but just in case)
                         const milestone = checkMilestone(dropoffData.customer.total_dropoffs);
                         if (milestone) {
