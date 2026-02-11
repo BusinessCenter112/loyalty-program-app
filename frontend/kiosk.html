@@ -1749,7 +1749,7 @@
 
                     if (dropoffResponse.ok) {
                         const dropoffData = await dropoffResponse.json();
-                        displaySuccess(dropoffData.customer, dropoffData.eligibleRewards);
+                        displaySuccess(dropoffData.customer, dropoffData.eligibleRewards, true);
 
                         // Reset button for next time
                         button.textContent = originalText;
@@ -1864,8 +1864,10 @@
             }
         }
 
-        function displaySuccess(customer, eligibleRewards) {
-            document.getElementById('successWelcome').textContent = `Welcome back, ${customer.first_name}!`;
+        function displaySuccess(customer, eligibleRewards, isNewCustomer) {
+            document.getElementById('successWelcome').textContent = isNewCustomer
+                ? `Welcome, ${customer.first_name}!`
+                : `Welcome back, ${customer.first_name}!`;
             document.getElementById('successDropoffs').textContent = customer.total_dropoffs;
             document.getElementById('successRewards').textContent = eligibleRewards;
 
