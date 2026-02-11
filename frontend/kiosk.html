@@ -1371,6 +1371,7 @@
             <div class="success-scroll">
                 <div class="success-header">
                     <div class="success-icon">✅</div>
+                    <p id="successWelcome" style="font-size: 20px; color: rgba(255,255,255,0.9); margin-bottom: 5px;"></p>
                     <h1>Drop-off Logged!</h1>
                     <div id="successRank" class="rank-badge no-rank" style="display: none;">
                         <span class="rank-icon"></span>
@@ -1870,6 +1871,7 @@
         }
 
         function displaySuccess(customer, eligibleRewards) {
+            document.getElementById('successWelcome').textContent = `Welcome back, ${customer.first_name}!`;
             document.getElementById('successDropoffs').textContent = customer.total_dropoffs;
             document.getElementById('successRewards').textContent = eligibleRewards;
 
