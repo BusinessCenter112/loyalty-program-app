@@ -1831,11 +1831,13 @@
             // Pause the auto-return timer while viewing tiers
             clearSuccessTimer();
             updateOverlayTierDisplay(currentCustomer);
-            document.getElementById('tierOverlay').classList.add('active');
+            const tierOverlay = document.getElementById('tierOverlay');
+            if (tierOverlay) tierOverlay.classList.add('active');
         }
 
         function closeTierOverlay() {
-            document.getElementById('tierOverlay').classList.remove('active');
+            const tierOverlay = document.getElementById('tierOverlay');
+            if (tierOverlay) tierOverlay.classList.remove('active');
             // Restart the auto-return timer if we're on the success screen
             const successScreen = document.getElementById('successScreen');
             if (successScreen.classList.contains('active')) {
@@ -1908,6 +1910,7 @@
             const bronzeTier = document.getElementById('overlayBronzeTier');
             const silverTier = document.getElementById('overlaySilverTier');
             const goldTier = document.getElementById('overlayGoldTier');
+            if (!bronzeTier || !silverTier || !goldTier) return;
             const bronzeStatus = document.getElementById('overlayBronzeStatus');
             const silverStatus = document.getElementById('overlaySilverStatus');
             const goldStatus = document.getElementById('overlayGoldStatus');
