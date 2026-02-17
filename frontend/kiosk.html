@@ -128,6 +128,59 @@
             margin-top: 10px;
         }
 
+        .success-progress-bar-container {
+            max-width: 360px;
+            margin: 20px auto 0;
+        }
+
+        .success-progress-bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 6px;
+        }
+
+        .success-progress-bar-track {
+            width: 100%;
+            height: 18px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 9px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .success-progress-bar-fill {
+            height: 100%;
+            border-radius: 9px;
+            background: linear-gradient(90deg, #FFD700 0%, #FFA500 100%);
+            width: 0%;
+            transition: width 1s ease-out;
+        }
+
+        .success-progress-bar-dots {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .success-progress-bar-dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .success-progress-bar-dots span.filled {
+            background: rgba(255, 255, 255, 0.7);
+        }
+
         .success-done-bar {
             flex-shrink: 0;
             padding: 15px 20px;
@@ -1388,6 +1441,16 @@
                             <div class="success-stat-label">Rewards Available</div>
                         </div>
                     </div>
+                    <div class="success-progress-bar-container" id="successProgressBarContainer">
+                        <div class="success-progress-bar-label">
+                            <span id="successProgressCount">0 / 10</span>
+                            <span>Next Reward</span>
+                        </div>
+                        <div class="success-progress-bar-track">
+                            <div class="success-progress-bar-fill" id="successProgressBarFill"></div>
+                            <div class="success-progress-bar-dots" id="successProgressBarDots"></div>
+                        </div>
+                    </div>
                     <div class="success-progress-text" id="successProgressText"></div>
                     <div id="rewardBadge" style="display: none;">
                         <div class="reward-badge">🎉 You earned a reward!</div>
@@ -2066,6 +2129,33 @@
             } else {
                 document.getElementById(`${prefix}Text`).textContent =
                     `${dropsToNext} more drop-off${dropsToNext > 1 ? 's' : ''} until your next reward!`;
+            }
+
+            // Update the success screen progress bar
+            if (prefix === 'successProgress') {
+                const fill = document.getElementById('successProgressBarFill');
+                const count = document.getElementById('successProgressCount');
+                const dots = document.getElementById('successProgressBarDots');
+
+                if (fill && count && dots) {
+                    const displayCount = (dropsToNext === 10 && totalDropoffs > 0) ? 10 : currentInCycle;
+                    const fillPercent = (displayCount / 10) * 100;
+
+                    count.textContent = `${displayCount} / 10`;
+
+                    // Build dot indicators
+                    let dotsHTML = '';
+                    for (let i = 0; i < 10; i++) {
+                        dotsHTML += `<span class="${i < displayCount ? 'filled' : ''}"></span>`;
+                    }
+                    dots.innerHTML = dotsHTML;
+
+                    // Animate the fill after a short delay
+                    fill.style.width = '0%';
+                    setTimeout(() => {
+                        fill.style.width = fillPercent + '%';
+                    }, 200);
+                }
             }
         }
 
