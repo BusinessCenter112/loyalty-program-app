@@ -689,6 +689,64 @@ app.delete('/api/dropoffs/:id', async (req, res) => {
     }
 });
 
+// Analytics: Drop-offs grouped by day of week
+app.get('/api/analytics/dropoffs-by-day', async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT EXTRACT(DOW FROM date) AS day, COALESCE(SUM(quantity), 0) AS total
+             FROM dropoffs
+             GROUP BY day
+             ORDER BY day`
+        );
+
+        // Build array for Sun(0)–Sat(6), filling missing days with 0
+        const days = [0, 1, 2, 3, 4, 5, 6];
+        const totals = days.map(d => {
+            const row = result.rows.find(r => parseInt(r.day) === d);
+            return row ? parseInt(row.total) : 0;
+        });
+
+        res.json({ days: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], totals });
+    } catch (error) {
+        console.error('Analytics dropoffs-by-day error:', error);
+        res.status(500).json({ error: 'Failed to fetch dropoffs by day', details: error.message });
+    }
+});
+
+// Analytics: Monthly drop-off trend (last 12 months)
+app.get('/api/analytics/monthly-trend', async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT DATE_TRUNC('month', date) AS month, COALESCE(SUM(quantity), 0) AS total
+             FROM dropoffs
+             WHERE date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '11 months'
+             GROUP BY month
+             ORDER BY month`
+        );
+
+        // Build last 12 months array, filling gaps with 0
+        const months = [];
+        const totals = [];
+        const now = new Date();
+        for (let i = 11; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const label = d.toLocaleString('default', { month: 'short', year: '2-digit' });
+            months.push(label);
+
+            const match = result.rows.find(r => {
+                const rowDate = new Date(r.month);
+                return rowDate.getFullYear() === d.getFullYear() && rowDate.getMonth() === d.getMonth();
+            });
+            totals.push(match ? parseInt(match.total) : 0);
+        }
+
+        res.json({ months, totals });
+    } catch (error) {
+        console.error('Analytics monthly-trend error:', error);
+        res.status(500).json({ error: 'Failed to fetch monthly trend', details: error.message });
+    }
+});
+
 // Initialize database and start server
 initializeDatabase().then(() => {
     app.listen(PORT, () => {
