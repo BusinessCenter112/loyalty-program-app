@@ -455,6 +455,24 @@ app.get('/api/customers', async (req, res) => {
     }
 });
 
+// Get leaderboard (top 10 customers by drop-offs)
+app.get('/api/leaderboard', async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT first_name, LEFT(last_name, 1) AS last_initial, total_dropoffs
+             FROM customers
+             WHERE total_dropoffs > 0
+             ORDER BY total_dropoffs DESC
+             LIMIT 10`
+        );
+
+        res.json({ leaderboard: result.rows });
+    } catch (error) {
+        console.error('Leaderboard error:', error);
+        res.status(500).json({ error: 'Failed to fetch leaderboard', details: error.message });
+    }
+});
+
 // Get dashboard stats
 app.get('/api/stats', async (req, res) => {
     try {

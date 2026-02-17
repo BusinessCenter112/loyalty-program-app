@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drop-off Leaderboard - Web 2.0 Rewards Club</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #4169E1 0%, #2855C5 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px 30px;
+            max-width: 550px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .trophy {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        /* Podium Section */
+        .podium-section {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 10px;
+            margin-bottom: 30px;
+            min-height: 260px;
+        }
+
+        .podium-entry {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            max-width: 150px;
+        }
+
+        .podium-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .podium-entry:nth-child(2) .podium-avatar {
+            width: 60px;
+            height: 60px;
+            font-size: 26px;
+        }
+
+        .podium-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+            word-break: break-word;
+        }
+
+        .podium-entry:nth-child(2) .podium-name {
+            font-size: 16px;
+        }
+
+        .podium-dropoffs {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .podium-block {
+            width: 100%;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 800;
+            color: white;
+        }
+
+        /* 2nd place - left */
+        .podium-entry:nth-child(1) .podium-block {
+            height: 100px;
+            background: linear-gradient(180deg, #C0C0C0 0%, #A8A8A8 100%);
+        }
+        .podium-entry:nth-child(1) .podium-avatar {
+            background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
+        }
+
+        /* 1st place - center */
+        .podium-entry:nth-child(2) .podium-block {
+            height: 140px;
+            background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
+        }
+        .podium-entry:nth-child(2) .podium-avatar {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #333;
+        }
+        .podium-entry:nth-child(2) .podium-block {
+            color: #333;
+        }
+
+        /* 3rd place - right */
+        .podium-entry:nth-child(3) .podium-block {
+            height: 70px;
+            background: linear-gradient(180deg, #CD7F32 0%, #8B4513 100%);
+        }
+        .podium-entry:nth-child(3) .podium-avatar {
+            background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+        }
+
+        /* Runners up list */
+        .runners-up {
+            text-align: left;
+        }
+
+        .runners-up h3 {
+            font-size: 14px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .runner-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            transition: transform 0.2s;
+        }
+
+        .runner-row:hover {
+            transform: translateX(4px);
+            background: #EFF6FF;
+        }
+
+        .runner-rank {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: #555;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .runner-name {
+            flex: 1;
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .runner-dropoffs {
+            font-size: 16px;
+            font-weight: 700;
+            color: #4169E1;
+        }
+
+        .runner-label {
+            font-size: 11px;
+            color: #999;
+            margin-left: 4px;
+        }
+
+        /* Back button */
+        .back-btn {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #4169E1 0%, #1E3A8A 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(65, 105, 225, 0.4);
+        }
+
+        .empty-state {
+            padding: 40px 20px;
+            color: #999;
+            font-size: 16px;
+        }
+
+        .loading {
+            padding: 40px 20px;
+            color: #999;
+            font-size: 16px;
+        }
+
+        @media (max-width: 400px) {
+            .container {
+                padding: 25px 15px;
+            }
+            .podium-section {
+                gap: 6px;
+            }
+            .podium-name {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="trophy">🏆</div>
+        <h1>Drop-off Leaderboard</h1>
+        <p class="subtitle">Top 10 Customers by Package Drop-offs</p>
+
+        <div id="loading" class="loading">Loading leaderboard...</div>
+        <div id="emptyState" class="empty-state" style="display: none;">No drop-offs recorded yet. Be the first!</div>
+
+        <div id="podiumSection" class="podium-section" style="display: none;"></div>
+        <div id="runnersUp" class="runners-up" style="display: none;"></div>
+
+        <button class="back-btn" onclick="history.back()">Back</button>
+    </div>
+
+    <script>
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+            ? 'http://localhost:3001/api'
+            : '/api';
+
+        async function loadLeaderboard() {
+            try {
+                const response = await fetch(`${API_URL}/leaderboard`);
+                const data = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (!data.leaderboard || data.leaderboard.length === 0) {
+                    document.getElementById('emptyState').style.display = 'block';
+                    return;
+                }
+
+                const entries = data.leaderboard;
+                buildPodium(entries.slice(0, 3));
+
+                if (entries.length > 3) {
+                    buildRunnersList(entries.slice(3));
+                }
+            } catch (error) {
+                document.getElementById('loading').textContent = 'Unable to load leaderboard. Please try again.';
+                console.error('Leaderboard error:', error);
+            }
+        }
+
+        function getInitial(name) {
+            return name ? name.charAt(0).toUpperCase() : '';
+        }
+
+        function formatName(entry) {
+            const firstName = entry.first_name.trim();
+            const lastInitial = entry.last_initial ? entry.last_initial.toUpperCase() + '.' : '';
+            return `${firstName} ${lastInitial}`;
+        }
+
+        function buildPodium(top3) {
+            const section = document.getElementById('podiumSection');
+
+            if (top3.length === 0) return;
+
+            // Podium order: 2nd, 1st, 3rd
+            const order = [];
+            if (top3[1]) order.push({ entry: top3[1], rank: 2 });
+            if (top3[0]) order.push({ entry: top3[0], rank: 1 });
+            if (top3[2]) order.push({ entry: top3[2], rank: 3 });
+
+            let html = '';
+            order.forEach(({ entry, rank }) => {
+                const name = formatName(entry);
+                const initial = getInitial(entry.first_name);
+                html += `
+                    <div class="podium-entry">
+                        <div class="podium-avatar">${initial}</div>
+                        <div class="podium-name">${name}</div>
+                        <div class="podium-dropoffs">${entry.total_dropoffs} drop-offs</div>
+                        <div class="podium-block">${rank}</div>
+                    </div>
+                `;
+            });
+
+            section.innerHTML = html;
+            section.style.display = 'flex';
+        }
+
+        function buildRunnersList(entries) {
+            const section = document.getElementById('runnersUp');
+            let html = '<h3>Runners Up</h3>';
+
+            entries.forEach((entry, index) => {
+                const rank = index + 4;
+                const name = formatName(entry);
+                html += `
+                    <div class="runner-row">
+                        <div class="runner-rank">${rank}</div>
+                        <div class="runner-name">${name}</div>
+                        <div>
+                            <span class="runner-dropoffs">${entry.total_dropoffs}</span>
+                            <span class="runner-label">drop-offs</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            section.innerHTML = html;
+            section.style.display = 'block';
+        }
+
+        loadLeaderboard();
+    </script>
+</body>
+</html>
