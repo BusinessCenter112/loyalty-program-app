@@ -14,8 +14,15 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 // PostgreSQL connection
+if (!process.env.DATABASE_URL) {
+    console.error('ERROR: DATABASE_URL environment variable is not set.');
+    console.error('Set it before starting the server, e.g.:');
+    console.error('  DATABASE_URL=postgresql://user:pass@host/dbname node server.js');
+    process.exit(1);
+}
+
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgresql://web20businesscenter_user:pM42fzthbgk86ssmFR4Ilv2nxcNjbrIA@dpg-d5gl59q4d50c73b232h0-a/web20businesscenter',
+    connectionString: process.env.DATABASE_URL,
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
     max: 10,
     idleTimeoutMillis: 30000,
