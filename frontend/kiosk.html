@@ -1275,6 +1275,84 @@
         .view-tiers-btn:hover {
             box-shadow: 0 10px 25px rgba(155, 89, 182, 0.4);
         }
+
+        /* ===== MARCH MADNESS 2026 — REMOVE AFTER APRIL 6 ===== */
+        .mm-section {
+            background: rgba(0,0,0,0.25);
+            border-radius: 16px;
+            padding: 22px 20px;
+            margin: 16px 16px 20px;
+            text-align: center;
+            border: 2px solid rgba(255,215,0,0.5);
+        }
+        .mm-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #FFD700;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+        .mm-subtitle {
+            color: rgba(255,255,255,0.85);
+            font-size: 14px;
+            margin-bottom: 14px;
+        }
+        .mm-select {
+            width: 100%;
+            padding: 11px 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 15px;
+            margin-bottom: 10px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+        }
+        .mm-paid-note {
+            color: rgba(255,255,255,0.75);
+            font-size: 12px;
+            margin-bottom: 12px;
+            padding: 8px 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+        .mm-submit-btn {
+            background: #FFD700;
+            color: #1a1a1a;
+            font-weight: 700;
+            font-size: 15px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .mm-submit-btn:hover { background: #FFC200; }
+        .mm-submit-btn:disabled { opacity: 0.6; cursor: default; }
+        .mm-picked-label {
+            color: rgba(255,255,255,0.75);
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        .mm-picked-team {
+            font-size: 24px;
+            font-weight: 700;
+            color: #FFD700;
+            margin-bottom: 6px;
+        }
+        .mm-picked-note {
+            color: rgba(255,255,255,0.75);
+            font-size: 13px;
+        }
+        .mm-error {
+            color: #FF6B6B;
+            font-size: 13px;
+            margin-top: 8px;
+            background: rgba(255,255,255,0.1);
+            padding: 7px 10px;
+            border-radius: 6px;
+        }
+        /* ===== END MARCH MADNESS ===== */
     </style>
 </head>
 <body>
@@ -1513,6 +1591,95 @@
                     <div class="inline-tier-indicator" id="inlineTierIndicator"></div>
                     <div class="inline-tier-note">*Notary must be scheduled in advance. Choose 1 reward per tier.</div>
                 </div>
+
+                <!-- ===== MARCH MADNESS 2026 — REMOVE AFTER APRIL 6 ===== -->
+                <div class="mm-section" id="mmSection">
+                    <div class="mm-title">🏀 MARCH MADNESS 2026</div>
+                    <div id="mmAlreadyPicked" style="display:none;">
+                        <p class="mm-picked-label">Your Champion Pick:</p>
+                        <div class="mm-picked-team" id="mmPickedTeam"></div>
+                        <p class="mm-picked-note">Good luck! 🤞</p>
+                    </div>
+                    <div id="mmPickForm">
+                        <p class="mm-subtitle">Who will win it all? Pick your champion — it's free!</p>
+                        <select id="mmTeamSelect" class="mm-select">
+                            <option value="">-- Select a team --</option>
+                            <option>Akron</option>
+                            <option>Alabama</option>
+                            <option>Arizona</option>
+                            <option>Arkansas</option>
+                            <option>BYU</option>
+                            <option>Cal Baptist</option>
+                            <option>Clemson</option>
+                            <option>Duke</option>
+                            <option>Florida</option>
+                            <option>Furman</option>
+                            <option>Georgia</option>
+                            <option>Gonzaga</option>
+                            <option>Hawaii</option>
+                            <option>High Point</option>
+                            <option>Hofstra</option>
+                            <option>Houston</option>
+                            <option>Howard</option>
+                            <option>Idaho</option>
+                            <option>Illinois</option>
+                            <option>Iowa</option>
+                            <option>Iowa State</option>
+                            <option>Kansas</option>
+                            <option>Kennesaw State</option>
+                            <option>Kentucky</option>
+                            <option>LIU</option>
+                            <option>Lehigh</option>
+                            <option>Louisville</option>
+                            <option>McNeese</option>
+                            <option>Miami (FL)</option>
+                            <option>Miami (OH)</option>
+                            <option>Michigan</option>
+                            <option>Michigan State</option>
+                            <option>Missouri</option>
+                            <option>NC State</option>
+                            <option>Nebraska</option>
+                            <option>North Carolina</option>
+                            <option>North Dakota State</option>
+                            <option>Northern Iowa</option>
+                            <option>Ohio State</option>
+                            <option>Penn</option>
+                            <option>Prairie View A&amp;M</option>
+                            <option>Purdue</option>
+                            <option>Queens (NC)</option>
+                            <option>Saint Louis</option>
+                            <option>Saint Mary's</option>
+                            <option>SMU</option>
+                            <option>Santa Clara</option>
+                            <option>Siena</option>
+                            <option>South Florida</option>
+                            <option>St. John's</option>
+                            <option>TCU</option>
+                            <option>Tennessee</option>
+                            <option>Tennessee State</option>
+                            <option>Texas</option>
+                            <option>Texas A&amp;M</option>
+                            <option>Texas Tech</option>
+                            <option>Troy</option>
+                            <option>UCF</option>
+                            <option>UCLA</option>
+                            <option>UMBC</option>
+                            <option>UConn</option>
+                            <option>Utah State</option>
+                            <option>VCU</option>
+                            <option>Vanderbilt</option>
+                            <option>Villanova</option>
+                            <option>Virginia</option>
+                            <option>Wisconsin</option>
+                            <option>Wright State</option>
+                        </select>
+                        <div class="mm-paid-note">💵 Want to join the prize pool? Buy a printed bracket from us for just $1!</div>
+                        <button class="mm-submit-btn" id="mmSubmitBtn">Submit My Pick</button>
+                        <div id="mmError" class="mm-error" style="display:none;"></div>
+                    </div>
+                </div>
+                <!-- ===== END MARCH MADNESS ===== -->
+
             </div>
         </div>
 
@@ -1549,6 +1716,9 @@
         function showSuccessScreen() {
             showScreen('successScreen');
             startSuccessTimer();
+            // ===== MARCH MADNESS 2026 — REMOVE AFTER APRIL 6 =====
+            if (currentCustomer) loadMarchMadnessPick(currentCustomer.id);
+            // ===== END MARCH MADNESS =====
         }
 
         function startSuccessTimer() {
@@ -2582,6 +2752,64 @@
                 }, 500);
             });
         }
+
+        // ===== MARCH MADNESS 2026 — REMOVE AFTER APRIL 6 =====
+        async function loadMarchMadnessPick(customerId) {
+            try {
+                const res = await fetch(`${API_URL}/march-madness/pick/${customerId}`);
+                const data = await res.json();
+                if (res.ok && data.pick) {
+                    document.getElementById('mmAlreadyPicked').style.display = 'block';
+                    document.getElementById('mmPickForm').style.display = 'none';
+                    document.getElementById('mmPickedTeam').textContent = data.pick.team_pick;
+                } else {
+                    document.getElementById('mmAlreadyPicked').style.display = 'none';
+                    document.getElementById('mmPickForm').style.display = 'block';
+                    document.getElementById('mmTeamSelect').value = '';
+                    document.getElementById('mmError').style.display = 'none';
+                    document.getElementById('mmSubmitBtn').disabled = false;
+                    document.getElementById('mmSubmitBtn').textContent = 'Submit My Pick';
+                }
+            } catch (e) {
+                document.getElementById('mmAlreadyPicked').style.display = 'none';
+                document.getElementById('mmPickForm').style.display = 'block';
+            }
+        }
+
+        document.getElementById('mmSubmitBtn').addEventListener('click', async () => {
+            const teamPick = document.getElementById('mmTeamSelect').value;
+            if (!teamPick) {
+                document.getElementById('mmError').textContent = 'Please select a team first!';
+                document.getElementById('mmError').style.display = 'block';
+                return;
+            }
+            document.getElementById('mmError').style.display = 'none';
+            document.getElementById('mmSubmitBtn').disabled = true;
+            document.getElementById('mmSubmitBtn').textContent = 'Saving...';
+            try {
+                const res = await fetch(`${API_URL}/march-madness/pick`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ customerId: currentCustomer.id, teamPick })
+                });
+                if (res.ok) {
+                    document.getElementById('mmPickForm').style.display = 'none';
+                    document.getElementById('mmAlreadyPicked').style.display = 'block';
+                    document.getElementById('mmPickedTeam').textContent = teamPick;
+                } else {
+                    document.getElementById('mmError').textContent = 'Could not save pick. Please try again.';
+                    document.getElementById('mmError').style.display = 'block';
+                    document.getElementById('mmSubmitBtn').disabled = false;
+                    document.getElementById('mmSubmitBtn').textContent = 'Submit My Pick';
+                }
+            } catch (e) {
+                document.getElementById('mmError').textContent = 'Connection error. Please try again.';
+                document.getElementById('mmError').style.display = 'block';
+                document.getElementById('mmSubmitBtn').disabled = false;
+                document.getElementById('mmSubmitBtn').textContent = 'Submit My Pick';
+            }
+        });
+        // ===== END MARCH MADNESS =====
     </script>
 </body>
 </html>
