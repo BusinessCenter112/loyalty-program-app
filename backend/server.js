@@ -838,6 +838,29 @@ app.patch('/api/march-madness/paid/:customerId', async (req, res) => {
     }
 });
 
+// Community pick stats for kiosk display
+app.get('/api/march-madness/stats', async (req, res) => {
+    try {
+        const totalResult = await pool.query('SELECT COUNT(*) FROM march_madness_picks');
+        const total = parseInt(totalResult.rows[0].count);
+        const picksResult = await pool.query(
+            `SELECT team_pick, COUNT(*) AS count
+             FROM march_madness_picks
+             GROUP BY team_pick
+             ORDER BY count DESC, team_pick ASC`
+        );
+        const picks = picksResult.rows.map(r => ({
+            team: r.team_pick,
+            count: parseInt(r.count),
+            percentage: total > 0 ? Math.round((parseInt(r.count) / total) * 100) : 0
+        }));
+        res.json({ total, picks });
+    } catch (error) {
+        console.error('March Madness stats error:', error);
+        res.status(500).json({ error: 'Failed to fetch stats', details: error.message });
+    }
+});
+
 // ===== END MARCH MADNESS =====
 
 // Initialize database and start server

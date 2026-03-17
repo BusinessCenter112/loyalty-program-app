@@ -1352,6 +1352,36 @@
             padding: 7px 10px;
             border-radius: 6px;
         }
+        .mm-stats-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.7);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 10px;
+        }
+        .mm-stat-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            background: rgba(255,255,255,0.08);
+        }
+        .mm-stat-row.top-1 { background: rgba(255,215,0,0.2); border: 1px solid rgba(255,215,0,0.5); }
+        .mm-stat-row.top-2 { background: rgba(192,192,192,0.15); border: 1px solid rgba(192,192,192,0.4); }
+        .mm-stat-row.top-3 { background: rgba(205,127,50,0.15); border: 1px solid rgba(205,127,50,0.4); }
+        .mm-stat-medal { font-size: 16px; width: 22px; flex-shrink: 0; }
+        .mm-stat-name { flex: 1; font-size: 14px; font-weight: 600; color: white; text-align: left; }
+        .mm-stat-bar-wrap { width: 80px; background: rgba(255,255,255,0.15); border-radius: 4px; height: 6px; flex-shrink: 0; }
+        .mm-stat-bar { height: 6px; border-radius: 4px; background: #FFD700; }
+        .mm-stat-row.top-2 .mm-stat-bar { background: #C0C0C0; }
+        .mm-stat-row.top-3 .mm-stat-bar { background: #CD7F32; }
+        .mm-stat-pct { font-size: 13px; font-weight: 700; color: #FFD700; width: 32px; text-align: right; flex-shrink: 0; }
+        .mm-stat-row.top-2 .mm-stat-pct { color: #C0C0C0; }
+        .mm-stat-row.top-3 .mm-stat-pct { color: #CD7F32; }
+        .mm-stats-rest { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 6px; text-align: center; }
         /* ===== END MARCH MADNESS ===== */
     </style>
 </head>
@@ -1604,78 +1634,116 @@
                         <p class="mm-subtitle">Who will win it all? Pick your champion — it's free!</p>
                         <select id="mmTeamSelect" class="mm-select">
                             <option value="">-- Select a team --</option>
-                            <option>Akron</option>
-                            <option>Alabama</option>
-                            <option>Arizona</option>
-                            <option>Arkansas</option>
-                            <option>BYU</option>
-                            <option>Cal Baptist</option>
-                            <option>Clemson</option>
-                            <option>Duke</option>
-                            <option>Florida</option>
-                            <option>Furman</option>
-                            <option>Georgia</option>
-                            <option>Gonzaga</option>
-                            <option>Hawaii</option>
-                            <option>High Point</option>
-                            <option>Hofstra</option>
-                            <option>Houston</option>
-                            <option>Howard</option>
-                            <option>Idaho</option>
-                            <option>Illinois</option>
-                            <option>Iowa</option>
-                            <option>Iowa State</option>
-                            <option>Kansas</option>
-                            <option>Kennesaw State</option>
-                            <option>Kentucky</option>
-                            <option>LIU</option>
-                            <option>Lehigh</option>
-                            <option>Louisville</option>
-                            <option>McNeese</option>
-                            <option>Miami (FL)</option>
-                            <option>Miami (OH)</option>
-                            <option>Michigan</option>
-                            <option>Michigan State</option>
-                            <option>Missouri</option>
-                            <option>NC State</option>
-                            <option>Nebraska</option>
-                            <option>North Carolina</option>
-                            <option>North Dakota State</option>
-                            <option>Northern Iowa</option>
-                            <option>Ohio State</option>
-                            <option>Penn</option>
-                            <option>Prairie View A&amp;M</option>
-                            <option>Purdue</option>
-                            <option>Queens (NC)</option>
-                            <option>Saint Louis</option>
-                            <option>Saint Mary's</option>
-                            <option>SMU</option>
-                            <option>Santa Clara</option>
-                            <option>Siena</option>
-                            <option>South Florida</option>
-                            <option>St. John's</option>
-                            <option>TCU</option>
-                            <option>Tennessee</option>
-                            <option>Tennessee State</option>
-                            <option>Texas</option>
-                            <option>Texas A&amp;M</option>
-                            <option>Texas Tech</option>
-                            <option>Troy</option>
-                            <option>UCF</option>
-                            <option>UCLA</option>
-                            <option>UMBC</option>
-                            <option>UConn</option>
-                            <option>Utah State</option>
-                            <option>VCU</option>
-                            <option>Vanderbilt</option>
-                            <option>Villanova</option>
-                            <option>Virginia</option>
-                            <option>Wisconsin</option>
-                            <option>Wright State</option>
+                            <optgroup label="── #1 Seeds ──">
+                                <option value="Arizona">(1) Arizona</option>
+                                <option value="Duke">(1) Duke</option>
+                                <option value="Florida">(1) Florida</option>
+                                <option value="Michigan">(1) Michigan</option>
+                            </optgroup>
+                            <optgroup label="── #2 Seeds ──">
+                                <option value="Houston">(2) Houston</option>
+                                <option value="Iowa State">(2) Iowa State</option>
+                                <option value="Purdue">(2) Purdue</option>
+                                <option value="UConn">(2) UConn</option>
+                            </optgroup>
+                            <optgroup label="── #3 Seeds ──">
+                                <option value="Gonzaga">(3) Gonzaga</option>
+                                <option value="Illinois">(3) Illinois</option>
+                                <option value="Michigan State">(3) Michigan State</option>
+                                <option value="Virginia">(3) Virginia</option>
+                            </optgroup>
+                            <optgroup label="── #4 Seeds ──">
+                                <option value="Alabama">(4) Alabama</option>
+                                <option value="Arkansas">(4) Arkansas</option>
+                                <option value="Kansas">(4) Kansas</option>
+                                <option value="Nebraska">(4) Nebraska</option>
+                            </optgroup>
+                            <optgroup label="── #5 Seeds ──">
+                                <option value="St. John's">(5) St. John's</option>
+                                <option value="Texas Tech">(5) Texas Tech</option>
+                                <option value="Vanderbilt">(5) Vanderbilt</option>
+                                <option value="Wisconsin">(5) Wisconsin</option>
+                            </optgroup>
+                            <optgroup label="── #6 Seeds ──">
+                                <option value="BYU">(6) BYU</option>
+                                <option value="Louisville">(6) Louisville</option>
+                                <option value="North Carolina">(6) North Carolina</option>
+                                <option value="Tennessee">(6) Tennessee</option>
+                            </optgroup>
+                            <optgroup label="── #7 Seeds ──">
+                                <option value="Kentucky">(7) Kentucky</option>
+                                <option value="Miami (FL)">(7) Miami (FL)</option>
+                                <option value="Saint Mary's">(7) Saint Mary's</option>
+                                <option value="UCLA">(7) UCLA</option>
+                            </optgroup>
+                            <optgroup label="── #8 Seeds ──">
+                                <option value="Clemson">(8) Clemson</option>
+                                <option value="Georgia">(8) Georgia</option>
+                                <option value="Ohio State">(8) Ohio State</option>
+                                <option value="Villanova">(8) Villanova</option>
+                            </optgroup>
+                            <optgroup label="── #9 Seeds ──">
+                                <option value="Iowa">(9) Iowa</option>
+                                <option value="Saint Louis">(9) Saint Louis</option>
+                                <option value="TCU">(9) TCU</option>
+                                <option value="Utah State">(9) Utah State</option>
+                            </optgroup>
+                            <optgroup label="── #10 Seeds ──">
+                                <option value="Missouri">(10) Missouri</option>
+                                <option value="Santa Clara">(10) Santa Clara</option>
+                                <option value="Texas A&amp;M">(10) Texas A&amp;M</option>
+                                <option value="UCF">(10) UCF</option>
+                            </optgroup>
+                            <optgroup label="── #11 Seeds ──">
+                                <option value="Miami (OH)">(11) Miami (OH)</option>
+                                <option value="NC State">(11) NC State</option>
+                                <option value="SMU">(11) SMU</option>
+                                <option value="South Florida">(11) South Florida</option>
+                                <option value="Texas">(11) Texas</option>
+                                <option value="VCU">(11) VCU</option>
+                            </optgroup>
+                            <optgroup label="── #12 Seeds ──">
+                                <option value="Akron">(12) Akron</option>
+                                <option value="High Point">(12) High Point</option>
+                                <option value="McNeese">(12) McNeese</option>
+                                <option value="Northern Iowa">(12) Northern Iowa</option>
+                            </optgroup>
+                            <optgroup label="── #13 Seeds ──">
+                                <option value="Cal Baptist">(13) Cal Baptist</option>
+                                <option value="Hawaii">(13) Hawaii</option>
+                                <option value="Hofstra">(13) Hofstra</option>
+                                <option value="Troy">(13) Troy</option>
+                            </optgroup>
+                            <optgroup label="── #14 Seeds ──">
+                                <option value="Kennesaw State">(14) Kennesaw State</option>
+                                <option value="North Dakota State">(14) North Dakota State</option>
+                                <option value="Penn">(14) Penn</option>
+                                <option value="Wright State">(14) Wright State</option>
+                            </optgroup>
+                            <optgroup label="── #15 Seeds ──">
+                                <option value="Furman">(15) Furman</option>
+                                <option value="Idaho">(15) Idaho</option>
+                                <option value="Queens (NC)">(15) Queens (NC)</option>
+                                <option value="Tennessee State">(15) Tennessee State</option>
+                            </optgroup>
+                            <optgroup label="── #16 Seeds ──">
+                                <option value="Howard">(16) Howard</option>
+                                <option value="Lehigh">(16) Lehigh</option>
+                                <option value="LIU">(16) LIU</option>
+                                <option value="Prairie View A&amp;M">(16) Prairie View A&amp;M</option>
+                                <option value="Siena">(16) Siena</option>
+                                <option value="UMBC">(16) UMBC</option>
+                            </optgroup>
                         </select>
                         <div class="mm-paid-note">💵 Want to join the prize pool? Buy a printed bracket from us for just $1!</div>
                         <button class="mm-submit-btn" id="mmSubmitBtn">Submit My Pick</button>
                         <div id="mmError" class="mm-error" style="display:none;"></div>
+                    </div>
+
+                    <!-- Community picks stats -->
+                    <div id="mmStats" style="display:none; margin-top:16px;">
+                        <div class="mm-stats-title">📊 What Everyone's Picking</div>
+                        <div id="mmStatsContent"></div>
                     </div>
                 </div>
                 <!-- ===== END MARCH MADNESS ===== -->
@@ -2776,6 +2844,39 @@
                 document.getElementById('mmAlreadyPicked').style.display = 'none';
                 document.getElementById('mmPickForm').style.display = 'block';
             }
+            loadMarchMadnessStats();
+        }
+
+        async function loadMarchMadnessStats() {
+            try {
+                const res = await fetch(`${API_URL}/march-madness/stats`);
+                const data = await res.json();
+                if (!res.ok || !data.picks || data.picks.length === 0 || data.total === 0) {
+                    document.getElementById('mmStats').style.display = 'none';
+                    return;
+                }
+                const medals = ['🥇', '🥈', '🥉'];
+                const topClasses = ['top-1', 'top-2', 'top-3'];
+                const top3 = data.picks.slice(0, 3);
+                const rest = data.picks.length - 3;
+                const maxPct = top3[0].percentage || 1;
+
+                document.getElementById('mmStatsContent').innerHTML =
+                    top3.map((p, i) => `
+                        <div class="mm-stat-row ${topClasses[i]}">
+                            <span class="mm-stat-medal">${medals[i]}</span>
+                            <span class="mm-stat-name">${p.team}</span>
+                            <div class="mm-stat-bar-wrap">
+                                <div class="mm-stat-bar" style="width:${Math.round((p.percentage / maxPct) * 100)}%"></div>
+                            </div>
+                            <span class="mm-stat-pct">${p.percentage}%</span>
+                        </div>`).join('') +
+                    (rest > 0 ? `<div class="mm-stats-rest">+ ${rest} other team${rest > 1 ? 's' : ''} picked</div>` : '');
+
+                document.getElementById('mmStats').style.display = 'block';
+            } catch (e) {
+                document.getElementById('mmStats').style.display = 'none';
+            }
         }
 
         document.getElementById('mmSubmitBtn').addEventListener('click', async () => {
@@ -2798,6 +2899,7 @@
                     document.getElementById('mmPickForm').style.display = 'none';
                     document.getElementById('mmAlreadyPicked').style.display = 'block';
                     document.getElementById('mmPickedTeam').textContent = teamPick;
+                    loadMarchMadnessStats();
                 } else {
                     document.getElementById('mmError').textContent = 'Could not save pick. Please try again.';
                     document.getElementById('mmError').style.display = 'block';
