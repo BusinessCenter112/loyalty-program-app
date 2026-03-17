@@ -1715,8 +1715,10 @@
         // Show success screen with auto-return timer
         function showSuccessScreen() {
             showScreen('successScreen');
-            startSuccessTimer();
             // ===== MARCH MADNESS 2026 — REMOVE AFTER APRIL 6 =====
+            // Timer disabled so customers can make their pick without rush.
+            // Restore the line below when removing March Madness:
+            // startSuccessTimer();
             if (currentCustomer) loadMarchMadnessPick(currentCustomer.id);
             // ===== END MARCH MADNESS =====
         }
