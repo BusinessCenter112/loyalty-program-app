@@ -73,41 +73,11 @@
             margin-bottom: 10px;
         }
 
-        .logo-badge {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #7EB3FF 0%, #4169E1 50%, #a78bfa 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 16px;
-            box-shadow: 0 8px 28px rgba(65,105,225,0.55), 0 0 0 4px rgba(255,255,255,0.15);
-        }
-
-        .logo-badge-initials {
-            font-size: 22px;
-            font-weight: 900;
-            color: white;
-            letter-spacing: 1px;
-            line-height: 1;
-        }
-
-        .logo-badge-star {
-            font-size: 11px;
-            color: rgba(255,255,255,0.85);
-            margin-top: 2px;
-            letter-spacing: 3px;
-        }
-
-        .brand-msr {
-            font-size: 12px;
-            font-weight: 600;
-            color: rgba(255,255,255,0.6);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 6px;
+        .logo-corner {
+            position: absolute;
+            top: 16px;
+            right: 18px;
+            opacity: 0.92;
         }
 
         h1 {
@@ -1407,11 +1377,13 @@
     <div class="container">
         <!-- Phone Entry Screen -->
         <div id="phoneScreen" class="screen active">
-            <div class="logo-badge">
-                <div class="logo-badge-initials">MSR</div>
-                <div class="logo-badge-star">★ ★ ★</div>
+            <div class="logo-corner">
+                <svg width="44" height="44" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Main Street Rewards logo">
+                    <circle cx="19" cy="19" r="17.5" stroke="#C8860A" stroke-width="1.5"></circle>
+                    <circle cx="19" cy="19" r="14" fill="#C8860A"></circle>
+                    <path d="M11 26V13L19 21L27 13V26" stroke="#0D1B2A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
             </div>
-            <p class="brand-msr">Main Street Rewards</p>
             <h1>Web 2.0 Business Center</h1>
             <p class="subtitle">Enter your phone number to get started</p>
 
