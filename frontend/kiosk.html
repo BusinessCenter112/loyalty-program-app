@@ -46,16 +46,25 @@
         .container {
             position: relative;
             z-index: 1;
-        }
-
-        .container {
-            background: white;
+            background: rgba(255, 255, 255, 0.13);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid rgba(255, 255, 255, 0.22);
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 24px 64px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.3);
             padding: 40px;
             max-width: 500px;
             width: 100%;
             text-align: center;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #7EB3FF 0%, #4169E1 40%, #a78bfa 100%);
         }
 
 
@@ -65,13 +74,13 @@
         }
 
         h1 {
-            color: #333;
+            color: white;
             margin-bottom: 10px;
             font-size: 28px;
         }
 
         .subtitle {
-            color: #666;
+            color: rgba(255, 255, 255, 0.82);
             margin-bottom: 30px;
             font-size: 16px;
         }
@@ -241,16 +250,18 @@
             width: 100%;
             padding: 18px;
             font-size: 20px;
-            border: 2px solid #ddd;
+            border: 2px solid rgba(255,255,255,0.35);
             border-radius: 12px;
             margin-bottom: 20px;
             transition: border-color 0.3s;
             text-align: center;
+            background: rgba(255,255,255,0.92);
+            color: #333;
         }
 
         input:focus {
             outline: none;
-            border-color: #4169E1;
+            border-color: rgba(255,255,255,0.9);
         }
 
         button {
@@ -283,7 +294,8 @@
         }
 
         .customer-info {
-            background: #f8f9fa;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.18);
             padding: 30px;
             border-radius: 12px;
             margin-bottom: 30px;
@@ -292,7 +304,7 @@
         .customer-name {
             font-size: 32px;
             font-weight: bold;
-            color: #333;
+            color: white;
             margin-bottom: 20px;
         }
 
@@ -309,11 +321,11 @@
         .stat-number {
             font-size: 36px;
             font-weight: bold;
-            color: #4169E1;
+            color: #7EB3FF;
         }
 
         .stat-label {
-            color: #666;
+            color: rgba(255,255,255,0.78);
             font-size: 14px;
             margin-top: 5px;
         }
@@ -339,7 +351,7 @@
 
         .progress-ring-bg {
             fill: none;
-            stroke: #e9ecef;
+            stroke: rgba(255,255,255,0.2);
             stroke-width: 12;
         }
 
@@ -364,13 +376,13 @@
         .progress-ring-number {
             font-size: 36px;
             font-weight: bold;
-            color: #4169E1;
+            color: white;
             line-height: 1;
         }
 
         .progress-ring-label {
             font-size: 12px;
-            color: #666;
+            color: rgba(255,255,255,0.78);
             margin-top: 4px;
         }
 
@@ -386,8 +398,8 @@
         }
 
         .rank-badge.no-rank {
-            background: #f0f0f0;
-            color: #666;
+            background: rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.8);
         }
 
         .rank-badge.bronze {
@@ -438,8 +450,9 @@
         }
 
         .error-message {
-            color: #dc3545;
-            background: #f8d7da;
+            color: #ffb3b3;
+            background: rgba(220,53,69,0.25);
+            border: 1px solid rgba(220,53,69,0.4);
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -452,14 +465,14 @@
 
         .form-group label {
             display: block;
-            color: #666;
+            color: rgba(255,255,255,0.82);
             margin-bottom: 5px;
             font-size: 14px;
             font-weight: 600;
         }
 
         .info-text {
-            color: #666;
+            color: rgba(255,255,255,0.78);
             font-size: 14px;
             margin-top: 20px;
         }
@@ -467,13 +480,13 @@
         .history-section {
             margin-top: 20px;
             padding-top: 15px;
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid rgba(255,255,255,0.15);
             text-align: left;
         }
 
         .history-section h3 {
             font-size: 14px;
-            color: #666;
+            color: rgba(255,255,255,0.7);
             margin-bottom: 10px;
             text-align: center;
         }
@@ -487,18 +500,18 @@
             display: flex;
             justify-content: space-between;
             padding: 8px 12px;
-            background: #fff;
+            background: rgba(255,255,255,0.12);
             border-radius: 6px;
             margin-bottom: 6px;
             font-size: 14px;
         }
 
         .history-item .date {
-            color: #333;
+            color: rgba(255,255,255,0.9);
         }
 
         .history-item .qty {
-            color: #4169E1;
+            color: #7EB3FF;
             font-weight: 600;
         }
 
@@ -519,18 +532,19 @@
         .staff-link {
             margin-top: 20px;
             padding-top: 20px;
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid rgba(255,255,255,0.18);
             text-align: center;
         }
 
         .staff-link a {
-            color: #4169E1;
+            color: rgba(255,255,255,0.78);
             text-decoration: none;
             font-size: 14px;
             font-weight: 500;
         }
 
         .staff-link a:hover {
+            color: white;
             text-decoration: underline;
         }
 
@@ -1355,7 +1369,7 @@
             <div id="phoneError" class="error-message" style="display: none;"></div>
 
             <div class="staff-link" style="display: flex; justify-content: space-between; align-items: center;">
-                <a href="leaderboard.html" style="color: #4169E1; font-weight: 600;">🏆 View Leaderboard</a>
+                <a href="leaderboard.html" style="font-weight: 600;">🏆 View Leaderboard</a>
                 <a href="staff-login.html">Staff Login</a>
             </div>
         </div>
