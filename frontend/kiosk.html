@@ -40,7 +40,7 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 0;
+            z-index: 150;
         }
 
         .container {
@@ -107,10 +107,20 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: linear-gradient(135deg, #4169E1 0%, #2855C5 100%);
+            background: linear-gradient(135deg, #4169E1 0%, #2855C5 50%, #1a3fa8 100%);
+            background-size: 300% 300%;
+            animation: gradientShift 12s ease infinite;
             display: none;
             flex-direction: column;
             z-index: 100;
+        }
+
+        .success-logo-corner {
+            position: absolute;
+            top: 16px;
+            right: 18px;
+            opacity: 0.92;
+            z-index: 101;
         }
 
         #successScreen.active {
@@ -1489,6 +1499,13 @@
 
         <!-- Success Screen - Full Screen Layout -->
         <div id="successScreen" class="screen">
+            <a href="https://main-street-rewards.vercel.app/" target="_blank" rel="noopener" class="success-logo-corner">
+                <svg width="44" height="44" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Main Street Rewards logo">
+                    <circle cx="19" cy="19" r="17.5" stroke="#FFB830" stroke-width="1.5"></circle>
+                    <circle cx="19" cy="19" r="14" fill="#FFB830"></circle>
+                    <path d="M11 26V13L19 21L27 13V26" stroke="#0D1B2A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </a>
             <div class="success-scroll">
                 <div class="success-header">
                     <div class="success-icon">✅</div>
