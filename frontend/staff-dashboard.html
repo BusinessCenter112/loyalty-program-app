@@ -680,6 +680,67 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        .redemption-log-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            border-left: 4px solid #4169E1;
+        }
+
+        .redemption-log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .redemption-log-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .redemption-log-count {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .redemption-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .redemption-table th {
+            background: #f8f9fa;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            border-bottom: 2px solid #eee;
+            white-space: nowrap;
+        }
+
+        .redemption-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+        }
+
+        .redemption-table tr:last-child td { border-bottom: none; }
+        .redemption-table tr:hover td { background: #fafafa; }
+
+        .redemption-empty {
+            text-align: center;
+            color: #999;
+            padding: 30px;
+            font-size: 14px;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -735,6 +796,28 @@
         </div>
     </div>
 
+
+    <div class="redemption-log-section">
+        <div class="redemption-log-header">
+            <div class="redemption-log-title">🎟️ Redemption Log</div>
+            <div class="redemption-log-count">Last 100 redemptions</div>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="redemption-table">
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Redeemed By</th>
+                        <th>Notes</th>
+                        <th>Date & Time</th>
+                    </tr>
+                </thead>
+                <tbody id="redemptionLogBody">
+                    <tr><td colspan="4" class="redemption-empty">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     <div class="search-section">
         <h2 style="margin-bottom: 15px;">Search Customer</h2>
@@ -870,10 +953,11 @@
                 }
             });
 
-            // Load all customers, stats, and analytics on page load
+            // Load all customers, stats, analytics, and redemption log on page load
             searchCustomers();
             loadStats();
             loadAnalytics();
+            loadRedemptionLog();
         };
 
         async function loadStats() {
@@ -887,6 +971,37 @@
                 document.getElementById('statRewardsRedeemed').textContent = data.totalRewardsRedeemed;
             } catch (error) {
                 console.error('Failed to load stats:', error);
+            }
+        }
+
+        async function loadRedemptionLog() {
+            try {
+                const res = await fetch(`${API_URL}/redemptions`);
+                const data = await res.json();
+                const tbody = document.getElementById('redemptionLogBody');
+                const redemptions = data.redemptions || [];
+
+                if (redemptions.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="redemption-empty">No redemptions yet.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = redemptions.map(r => {
+                    const date = new Date(r.redeemed_at).toLocaleDateString('en-US', {
+                        month: 'short', day: 'numeric', year: 'numeric',
+                        hour: 'numeric', minute: '2-digit'
+                    });
+                    return `<tr>
+                        <td><strong>${r.first_name} ${r.last_name}</strong><br>
+                            <span style="font-size:12px;color:#999;">${r.phone_number || ''}</span></td>
+                        <td>${r.redeemed_by || '—'}</td>
+                        <td style="color:#666;">${r.notes || '—'}</td>
+                        <td style="font-size:13px;color:#666;white-space:nowrap;">${date}</td>
+                    </tr>`;
+                }).join('');
+            } catch (err) {
+                document.getElementById('redemptionLogBody').innerHTML =
+                    '<tr><td colspan="4" class="redemption-empty">Failed to load log.</td></tr>';
             }
         }
 
@@ -1225,7 +1340,8 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        customerId: selectedCustomer.id
+                        customerId: selectedCustomer.id,
+                        staffName: sessionStorage.getItem('staffName') || 'Unknown'
                     })
                 });
 
@@ -1233,6 +1349,7 @@
 
                 if (data.success) {
                     alert('Reward redeemed successfully! 10% discount applied.');
+                    loadRedemptionLog();
 
                     // Update customer
                     selectedCustomer = data.customer;

@@ -139,6 +139,17 @@ async function initializeDatabase() {
             CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone_number)
         `);
 
+        // Redemption log table
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS redemption_log (
+                id SERIAL PRIMARY KEY,
+                customer_id INTEGER REFERENCES customers(id) ON DELETE CASCADE,
+                redeemed_by VARCHAR(100),
+                notes VARCHAR(255),
+                redeemed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
         console.log('Database tables initialized successfully');
     } catch (error) {
         console.error('Database initialization error:', error);
@@ -408,7 +419,7 @@ app.post('/api/dropoffs', async (req, res) => {
 
 // Redeem reward
 app.post('/api/rewards/redeem', async (req, res) => {
-    const { customerId } = req.body;
+    const { customerId, staffName, notes } = req.body;
 
     if (!customerId) {
         return res.status(400).json({ error: 'Customer ID is required' });
@@ -437,6 +448,12 @@ app.post('/api/rewards/redeem', async (req, res) => {
             [parseInt(customerId)]
         );
 
+        // Log the redemption
+        await pool.query(
+            'INSERT INTO redemption_log (customer_id, redeemed_by, notes) VALUES ($1, $2, $3)',
+            [parseInt(customerId), staffName || 'Unknown', notes || null]
+        );
+
         res.json({
             success: true,
             message: 'Reward redeemed! 10% discount applied.',
@@ -445,6 +462,24 @@ app.post('/api/rewards/redeem', async (req, res) => {
     } catch (error) {
         console.error('Redeem reward error:', error);
         res.status(500).json({ error: 'Failed to redeem reward', details: error.message });
+    }
+});
+
+// Get redemption log
+app.get('/api/redemptions', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT r.id, r.redeemed_by, r.notes, r.redeemed_at,
+                   c.first_name, c.last_name, c.phone_number
+            FROM redemption_log r
+            JOIN customers c ON c.id = r.customer_id
+            ORDER BY r.redeemed_at DESC
+            LIMIT 100
+        `);
+        res.json({ redemptions: result.rows });
+    } catch (error) {
+        console.error('Redemption log error:', error);
+        res.status(500).json({ error: 'Failed to fetch redemption log', details: error.message });
     }
 });
 
