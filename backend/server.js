@@ -139,19 +139,6 @@ async function initializeDatabase() {
             CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone_number)
         `);
 
-        // ===== MARCH MADNESS 2026 — REMOVE AFTER APRIL 6 =====
-        await client.query(`
-            CREATE TABLE IF NOT EXISTS march_madness_picks (
-                id SERIAL PRIMARY KEY,
-                customer_id INTEGER REFERENCES customers(id) ON DELETE CASCADE,
-                team_pick VARCHAR(100) NOT NULL,
-                paid_dollar BOOLEAN DEFAULT FALSE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(customer_id)
-            )
-        `);
-        // ===== END MARCH MADNESS =====
-
         console.log('Database tables initialized successfully');
     } catch (error) {
         console.error('Database initialization error:', error);
@@ -760,108 +747,6 @@ app.get('/api/analytics/monthly-trend', async (req, res) => {
     }
 });
 
-// ===== MARCH MADNESS 2026 — REMOVE AFTER APRIL 6 =====
-
-// Save or update a customer's March Madness pick
-app.post('/api/march-madness/pick', async (req, res) => {
-    const { customerId, teamPick } = req.body;
-    if (!customerId || !teamPick) {
-        return res.status(400).json({ error: 'customerId and teamPick are required' });
-    }
-    try {
-        const result = await pool.query(
-            `INSERT INTO march_madness_picks (customer_id, team_pick)
-             VALUES ($1, $2)
-             ON CONFLICT (customer_id) DO UPDATE SET team_pick = EXCLUDED.team_pick
-             RETURNING *`,
-            [parseInt(customerId), teamPick]
-        );
-        res.json({ success: true, pick: result.rows[0] });
-    } catch (error) {
-        console.error('March Madness pick error:', error);
-        res.status(500).json({ error: 'Failed to save pick', details: error.message });
-    }
-});
-
-// Get a customer's March Madness pick
-app.get('/api/march-madness/pick/:customerId', async (req, res) => {
-    try {
-        const result = await pool.query(
-            'SELECT * FROM march_madness_picks WHERE customer_id = $1',
-            [parseInt(req.params.customerId)]
-        );
-        if (result.rows.length === 0) {
-            return res.json({ pick: null });
-        }
-        res.json({ pick: result.rows[0] });
-    } catch (error) {
-        console.error('March Madness get pick error:', error);
-        res.status(500).json({ error: 'Failed to get pick', details: error.message });
-    }
-});
-
-// Get all March Madness entries (staff/admin view)
-app.get('/api/march-madness/entries', async (req, res) => {
-    try {
-        const result = await pool.query(
-            `SELECT m.id, m.customer_id, m.team_pick, m.paid_dollar, m.created_at,
-                    c.first_name, c.last_name, c.phone_number, c.email
-             FROM march_madness_picks m
-             JOIN customers c ON c.id = m.customer_id
-             ORDER BY m.created_at DESC`
-        );
-        res.json({ entries: result.rows });
-    } catch (error) {
-        console.error('March Madness entries error:', error);
-        res.status(500).json({ error: 'Failed to fetch entries', details: error.message });
-    }
-});
-
-// Toggle paid status for a March Madness entry
-app.patch('/api/march-madness/paid/:customerId', async (req, res) => {
-    const { paid } = req.body;
-    if (typeof paid !== 'boolean') {
-        return res.status(400).json({ error: 'paid must be a boolean' });
-    }
-    try {
-        const result = await pool.query(
-            'UPDATE march_madness_picks SET paid_dollar = $1 WHERE customer_id = $2 RETURNING *',
-            [paid, parseInt(req.params.customerId)]
-        );
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Pick not found' });
-        }
-        res.json({ success: true, pick: result.rows[0] });
-    } catch (error) {
-        console.error('March Madness paid toggle error:', error);
-        res.status(500).json({ error: 'Failed to update paid status', details: error.message });
-    }
-});
-
-// Community pick stats for kiosk display
-app.get('/api/march-madness/stats', async (req, res) => {
-    try {
-        const totalResult = await pool.query('SELECT COUNT(*) FROM march_madness_picks');
-        const total = parseInt(totalResult.rows[0].count);
-        const picksResult = await pool.query(
-            `SELECT team_pick, COUNT(*) AS count
-             FROM march_madness_picks
-             GROUP BY team_pick
-             ORDER BY count DESC, team_pick ASC`
-        );
-        const picks = picksResult.rows.map(r => ({
-            team: r.team_pick,
-            count: parseInt(r.count),
-            percentage: total > 0 ? Math.round((parseInt(r.count) / total) * 100) : 0
-        }));
-        res.json({ total, picks });
-    } catch (error) {
-        console.error('March Madness stats error:', error);
-        res.status(500).json({ error: 'Failed to fetch stats', details: error.message });
-    }
-});
-
-// ===== END MARCH MADNESS =====
 
 // Initialize database and start server
 initializeDatabase().then(() => {
