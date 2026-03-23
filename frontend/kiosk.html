@@ -16,12 +16,36 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #4169E1 0%, #2855C5 100%);
+            background: linear-gradient(135deg, #4169E1 0%, #2855C5 50%, #1a3fa8 100%);
+            background-size: 300% 300%;
+            animation: gradientShift 12s ease infinite;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            overflow: hidden;
+        }
+
+        @keyframes gradientShift {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        #bgCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
         }
 
         .container {
@@ -33,6 +57,7 @@
             width: 100%;
             text-align: center;
         }
+
 
         .logo {
             font-size: 48px;
@@ -1278,6 +1303,7 @@
     </style>
 </head>
 <body>
+    <canvas id="bgCanvas"></canvas>
     <!-- Audio Elements -->
     <audio id="welcomeSound" preload="auto">
         <source src="sounds/welcome.mp3" type="audio/mpeg">
@@ -2584,6 +2610,56 @@
                 }, 500);
             });
         }
+
+        // ===== FLOATING DOTS BACKGROUND =====
+        (function() {
+            const canvas = document.getElementById('bgCanvas');
+            const ctx = canvas.getContext('2d');
+            let dots = [];
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+
+            function createDots() {
+                dots = [];
+                const count = Math.floor((canvas.width * canvas.height) / 18000);
+                for (let i = 0; i < count; i++) {
+                    dots.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        r: Math.random() * 3 + 1.5,
+                        speedX: (Math.random() - 0.5) * 0.4,
+                        speedY: (Math.random() - 0.5) * 0.4,
+                        opacity: Math.random() * 0.35 + 0.1
+                    });
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                dots.forEach(d => {
+                    ctx.beginPath();
+                    ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255,255,255,${d.opacity})`;
+                    ctx.fill();
+                    d.x += d.speedX;
+                    d.y += d.speedY;
+                    if (d.x < -10) d.x = canvas.width + 10;
+                    if (d.x > canvas.width + 10) d.x = -10;
+                    if (d.y < -10) d.y = canvas.height + 10;
+                    if (d.y > canvas.height + 10) d.y = -10;
+                });
+                requestAnimationFrame(draw);
+            }
+
+            resize();
+            createDots();
+            draw();
+            window.addEventListener('resize', () => { resize(); createDots(); });
+        })();
+        // ===== END FLOATING DOTS BACKGROUND =====
 
     </script>
 </body>
