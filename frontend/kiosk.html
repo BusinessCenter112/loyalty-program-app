@@ -2086,6 +2086,7 @@
             const dropsToNext = 10 - (customer.total_dropoffs % 10);
             if (dropsToNext === 10) {
                 document.getElementById('rewardBadge').style.display = 'block';
+                playRewardChime();
             } else {
                 document.getElementById('rewardBadge').style.display = 'none';
             }
@@ -2634,6 +2635,32 @@
                 platinum: '#A0B2C6'
             };
             return colors[rankClass] || '#666';
+        }
+
+        function playRewardChime() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                // Ascending fanfare: C5 E5 G5 C6
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                const duration = 0.18;
+                const gap = 0.13;
+                notes.forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                    const start = ctx.currentTime + i * gap;
+                    gain.gain.setValueAtTime(0, start);
+                    gain.gain.linearRampToValueAtTime(0.4, start + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+                    osc.start(start);
+                    osc.stop(start + duration);
+                });
+            } catch (e) {
+                console.log('Reward chime skipped:', e.message);
+            }
         }
 
         function playSound(soundId) {
