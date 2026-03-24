@@ -293,6 +293,8 @@
             border: none;
             border-radius: 12px;
             cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
             transition: transform 0.2s, box-shadow 0.3s, background-position 0.4s;
             margin-bottom: 10px;
             box-shadow: 0 4px 20px rgba(65,105,225,0.45);
@@ -1696,31 +1698,16 @@
         }
 
         // Format phone number as user types
-        document.getElementById('phoneInput').addEventListener('input', function(e) {
-            const isDeleting = e.inputType && e.inputType.includes('delete');
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length > 10) value = value.slice(0, 10);
-
-            // When deleting, allow the raw digit count to decrease naturally
-            // Don't reformat aggressively - just format based on current digits
-            if (value.length === 0) {
-                e.target.value = '';
-            } else if (value.length <= 3) {
-                // While typing first 3 digits, show without formatting
-                // But if we have exactly 3 and not deleting, add the formatting
-                if (value.length === 3 && !isDeleting) {
-                    e.target.value = `(${value}) `;
-                } else {
-                    e.target.value = value;
-                }
-            } else if (value.length <= 6) {
-                if (value.length === 6 && !isDeleting) {
-                    e.target.value = `(${value.slice(0,3)}) ${value.slice(3)}-`;
-                } else {
-                    e.target.value = `(${value.slice(0,3)}) ${value.slice(3)}`;
-                }
+        document.getElementById('phoneInput').addEventListener('input', function() {
+            const digits = this.value.replace(/\D/g, '').slice(0, 10);
+            if (digits.length === 0) {
+                this.value = '';
+            } else if (digits.length <= 3) {
+                this.value = digits;
+            } else if (digits.length <= 6) {
+                this.value = `(${digits.slice(0,3)}) ${digits.slice(3)}`;
             } else {
-                e.target.value = `(${value.slice(0,3)}) ${value.slice(3,6)}-${value.slice(6)}`;
+                this.value = `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
             }
         });
 
