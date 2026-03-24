@@ -1448,7 +1448,7 @@
 
             <div style="width:100%;">
                 <input type="tel" id="phoneInput" placeholder="(555) 123-4567" autocomplete="tel" inputmode="tel" pattern="[0-9]*">
-                <a id="phoneSubmit" href="javascript:void(0)">Log Drop-off</a>
+                <a id="phoneSubmit" href="#" onclick="doPhoneSubmit(event); return false;">Log Drop-off</a>
             </div>
 
             <div id="phoneError" class="error-message" style="display: none;"></div>
@@ -1726,8 +1726,8 @@
         });
 
         // Phone submission
-        document.getElementById('phoneSubmit').addEventListener('click', async (e) => {
-            e.preventDefault();
+        async function doPhoneSubmit(e) {
+            if (e) e.preventDefault();
             const phoneInput = document.getElementById('phoneInput');
             const phone = phoneInput.value.replace(/\D/g, '');
 
@@ -1819,7 +1819,7 @@
                 button.textContent = originalText;
                 button.style.pointerEvents = '';
             }
-        });
+        }
 
         // Log drop-off
         document.getElementById('logDropoffBtn').addEventListener('click', async () => {
