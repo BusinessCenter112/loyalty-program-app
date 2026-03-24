@@ -1439,8 +1439,10 @@
             <h1>Web 2.0 Business Center<br>Rewards Club</h1>
             <p class="subtitle">Enter your phone number to get started</p>
 
-            <input type="tel" id="phoneInput" placeholder="(555) 123-4567" autocomplete="tel" inputmode="tel" pattern="[0-9]*">
-            <button id="phoneSubmit">Log Drop-off</button>
+            <form id="phoneForm" onsubmit="return false;" style="width:100%;">
+                <input type="tel" id="phoneInput" placeholder="(555) 123-4567" autocomplete="tel" inputmode="tel" pattern="[0-9]*">
+                <button type="submit" id="phoneSubmit">Log Drop-off</button>
+            </form>
 
             <div id="phoneError" class="error-message" style="display: none;"></div>
 
@@ -1716,8 +1718,9 @@
             setTimeout(() => { input.value = formatted; }, 0);
         });
 
-        // Phone submission - looks up customer and logs drop-off in one step
-        document.getElementById('phoneSubmit').addEventListener('click', async () => {
+        // Phone submission — use form submit for reliable iOS tap handling
+        document.getElementById('phoneForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
             const phoneInput = document.getElementById('phoneInput');
             const phone = phoneInput.value.replace(/\D/g, '');
 
