@@ -769,6 +769,71 @@
             background-color: #e0e0e0;
             cursor: not-allowed;
         }
+
+        /* ── Tabs ── */
+        .tab-nav {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 14px;
+            padding: 6px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 11px 20px;
+            background: transparent;
+            border: none;
+            border-radius: 10px;
+            color: rgba(255,255,255,0.6);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover { color: white; background: rgba(255,255,255,0.08); }
+
+        .tab-btn.active {
+            background: #FFB830;
+            color: #0d1b4b;
+        }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ── Top customers table ── */
+        .top-customers-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .top-customers-table th {
+            background: rgba(255,255,255,0.08);
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: rgba(255,255,255,0.7);
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .top-customers-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.85);
+        }
+
+        .top-customers-table tr:last-child td { border-bottom: none; }
+        .top-customers-table tr:hover td { background: rgba(255,255,255,0.05); }
+
+        .top-rank-num {
+            font-weight: 800;
+            color: #FFB830;
+            font-size: 16px;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -794,71 +859,135 @@
         <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
 
-    <div class="stats-section">
-        <div class="stat-card highlight">
-            <div class="stat-number" id="statDropoffsMonth">-</div>
-            <div class="stat-label">Drop-offs This Month</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number" id="statNewCustomers">-</div>
-            <div class="stat-label">New Customers This Month</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number" id="statTotalCustomers">-</div>
-            <div class="stat-label">Total Customers</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number" id="statRewardsRedeemed">-</div>
-            <div class="stat-label">Rewards Redeemed</div>
-        </div>
+    <!-- Tab Navigation -->
+    <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('analytics')">Analytics</button>
+        <button class="tab-btn" onclick="switchTab('customers')">Customer Lookup</button>
     </div>
 
-    <div class="charts-section">
-        <div class="chart-card">
-            <h3>Drop-offs by Day of Week</h3>
-            <canvas id="dayOfWeekChart"></canvas>
+    <!-- ── ANALYTICS TAB ── -->
+    <div id="tab-analytics" class="tab-panel active">
+
+        <!-- Stat cards row 1 -->
+        <div class="stats-section">
+            <div class="stat-card highlight">
+                <div class="stat-number" id="statDropoffsMonth">-</div>
+                <div class="stat-label">Drop-offs This Month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="statTotalDropoffs">-</div>
+                <div class="stat-label">Total Drop-offs All Time</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="statActiveThisMonth">-</div>
+                <div class="stat-label">Active Customers This Month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="statNewCustomers">-</div>
+                <div class="stat-label">New Customers This Month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="statTotalCustomers">-</div>
+                <div class="stat-label">Total Customers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="statAvgDropoffs">-</div>
+                <div class="stat-label">Avg Drop-offs / Customer</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="statRewardsRedeemed">-</div>
+                <div class="stat-label">Rewards Redeemed</div>
+            </div>
         </div>
-        <div class="chart-card">
-            <h3>Monthly Trends</h3>
-            <canvas id="monthlyTrendChart"></canvas>
+
+        <!-- Charts row 1 -->
+        <div class="charts-section">
+            <div class="chart-card">
+                <h3>Drop-offs by Day of Week</h3>
+                <canvas id="dayOfWeekChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Monthly Drop-off Trend</h3>
+                <canvas id="monthlyTrendChart"></canvas>
+            </div>
         </div>
+
+        <!-- Charts row 2 -->
+        <div class="charts-section">
+            <div class="chart-card">
+                <h3>Customer Tier Distribution</h3>
+                <canvas id="tierDistributionChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>New Customers per Month</h3>
+                <canvas id="newCustomersChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Top 10 Customers -->
+        <div class="redemption-log-section" style="margin-bottom: 20px;">
+            <div class="redemption-log-header">
+                <div class="redemption-log-title">Top 10 Customers</div>
+                <div class="redemption-log-count">By total drop-offs</div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="top-customers-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Customer</th>
+                            <th>Tier</th>
+                            <th>Drop-offs</th>
+                            <th>Rewards Redeemed</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topCustomersBody">
+                        <tr><td colspan="5" class="redemption-empty">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Redemption Log -->
+        <div class="redemption-log-section">
+            <div class="redemption-log-header">
+                <div class="redemption-log-title">🎟️ Redemption Log</div>
+                <div class="redemption-log-count">Last 100 redemptions</div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="redemption-table">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Redeemed By</th>
+                            <th>Notes</th>
+                            <th>Date & Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="redemptionLogBody">
+                        <tr><td colspan="4" class="redemption-empty">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
+    <!-- ── CUSTOMER LOOKUP TAB ── -->
+    <div id="tab-customers" class="tab-panel">
 
-    <div class="redemption-log-section">
-        <div class="redemption-log-header">
-            <div class="redemption-log-title">🎟️ Redemption Log</div>
-            <div class="redemption-log-count">Last 100 redemptions</div>
+        <div class="search-section">
+            <h2 style="margin-bottom: 15px;">Search Customer</h2>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Start typing to search...">
+                <button onclick="searchCustomers()">Search</button>
+            </div>
         </div>
-        <div style="overflow-x: auto;">
-            <table class="redemption-table">
-                <thead>
-                    <tr>
-                        <th>Customer</th>
-                        <th>Redeemed By</th>
-                        <th>Notes</th>
-                        <th>Date & Time</th>
-                    </tr>
-                </thead>
-                <tbody id="redemptionLogBody">
-                    <tr><td colspan="4" class="redemption-empty">Loading...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
 
-    <div class="search-section">
-        <h2 style="margin-bottom: 15px;">Search Customer</h2>
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Start typing to search...">
-            <button onclick="searchCustomers()">Search</button>
-        </div>
-    </div>
+        <div class="results-section">
+            <div class="success-message" id="successMessage"></div>
 
-    <div class="results-section">
-        <div class="success-message" id="successMessage"></div>
-
-        <div id="customerDetail" class="dropoff-form">
+            <div id="customerDetail" class="dropoff-form">
             <div class="selected-customer-header">
                 <h2 id="selectedCustomerName"></h2>
                 <div class="customer-email-display" id="selectedCustomerEmail"></div>
@@ -940,7 +1069,9 @@
 
         <div class="customer-list" id="customerList"></div>
         <div class="no-results" id="noResults">No customers found. Try a different search.</div>
-    </div>
+        </div><!-- /results-section -->
+
+    </div><!-- /tab-customers -->
 
     <script>
         // Dynamic API URL - works locally and in production
@@ -949,6 +1080,14 @@
             : '/api';
         let selectedCustomer = null;
         let searchTimeout = null;
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', (tab === 'analytics' && i === 0) || (tab === 'customers' && i === 1));
+            });
+            document.getElementById('tab-analytics').classList.toggle('active', tab === 'analytics');
+            document.getElementById('tab-customers').classList.toggle('active', tab === 'customers');
+        }
 
         // Check if staff is logged in
         window.onload = function() {
@@ -994,8 +1133,11 @@
                 const data = await response.json();
 
                 document.getElementById('statDropoffsMonth').textContent = data.dropoffsThisMonth;
+                document.getElementById('statTotalDropoffs').textContent = data.totalDropoffs;
+                document.getElementById('statActiveThisMonth').textContent = data.activeCustomersThisMonth;
                 document.getElementById('statNewCustomers').textContent = data.newCustomersThisMonth;
                 document.getElementById('statTotalCustomers').textContent = data.totalCustomers;
+                document.getElementById('statAvgDropoffs').textContent = data.avgDropoffsPerCustomer;
                 document.getElementById('statRewardsRedeemed').textContent = data.totalRewardsRedeemed;
             } catch (error) {
                 console.error('Failed to load stats:', error);
@@ -1021,7 +1163,7 @@
                     });
                     return `<tr>
                         <td><strong>${r.first_name} ${r.last_name}</strong><br>
-                            <span style="font-size:12px;color:#999;">${r.phone_number || ''}</span></td>
+                            <span style="font-size:12px;color:rgba(255,255,255,0.4);">${r.phone_number || ''}</span></td>
                         <td>${r.redeemed_by || '—'}</td>
                         <td style="color:rgba(255,255,255,0.55);">${r.notes || '—'}</td>
                         <td style="font-size:13px;color:rgba(255,255,255,0.55);white-space:nowrap;">${date}</td>
@@ -1035,16 +1177,37 @@
 
         let dayOfWeekChart = null;
         let monthlyTrendChart = null;
+        let tierDistributionChart = null;
+        let newCustomersChart = null;
+
+        // Shared Chart.js defaults for dark background
+        const darkScales = {
+            x: {
+                ticks: { color: 'rgba(255,255,255,0.6)', precision: 0 },
+                grid: { color: 'rgba(255,255,255,0.08)' }
+            },
+            y: {
+                beginAtZero: true,
+                ticks: { color: 'rgba(255,255,255,0.6)', precision: 0 },
+                grid: { color: 'rgba(255,255,255,0.08)' }
+            }
+        };
 
         async function loadAnalytics() {
             try {
-                const [dayRes, monthRes] = await Promise.all([
+                const [dayRes, monthRes, tierRes, newCustRes, topRes] = await Promise.all([
                     fetch(`${API_URL}/analytics/dropoffs-by-day`),
-                    fetch(`${API_URL}/analytics/monthly-trend`)
+                    fetch(`${API_URL}/analytics/monthly-trend`),
+                    fetch(`${API_URL}/analytics/tier-distribution`),
+                    fetch(`${API_URL}/analytics/new-customers-monthly`),
+                    fetch(`${API_URL}/analytics/top-customers`)
                 ]);
 
                 const dayData = await dayRes.json();
                 const monthData = await monthRes.json();
+                const tierData = await tierRes.json();
+                const newCustData = await newCustRes.json();
+                const topData = await topRes.json();
 
                 // Day of week bar chart
                 if (dayOfWeekChart) dayOfWeekChart.destroy();
@@ -1055,22 +1218,20 @@
                         datasets: [{
                             label: 'Drop-offs',
                             data: dayData.totals,
-                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
-                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(255,184,48,0.7)',
+                            borderColor: '#FFB830',
                             borderWidth: 1,
-                            borderRadius: 4
+                            borderRadius: 5
                         }]
                     },
                     options: {
                         responsive: true,
                         plugins: { legend: { display: false } },
-                        scales: {
-                            y: { beginAtZero: true, ticks: { precision: 0 } }
-                        }
+                        scales: darkScales
                     }
                 });
 
-                // Monthly trend line chart
+                // Monthly drop-off trend
                 if (monthlyTrendChart) monthlyTrendChart.destroy();
                 monthlyTrendChart = new Chart(document.getElementById('monthlyTrendChart'), {
                     type: 'line',
@@ -1079,22 +1240,96 @@
                         datasets: [{
                             label: 'Drop-offs',
                             data: monthData.totals,
-                            borderColor: '#3498db',
-                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            borderColor: '#FFB830',
+                            backgroundColor: 'rgba(255,184,48,0.12)',
                             fill: true,
                             tension: 0.3,
-                            pointBackgroundColor: '#3498db',
+                            pointBackgroundColor: '#FFB830',
                             pointRadius: 4
                         }]
                     },
                     options: {
                         responsive: true,
                         plugins: { legend: { display: false } },
-                        scales: {
-                            y: { beginAtZero: true, ticks: { precision: 0 } }
-                        }
+                        scales: darkScales
                     }
                 });
+
+                // Tier distribution donut
+                if (tierDistributionChart) tierDistributionChart.destroy();
+                tierDistributionChart = new Chart(document.getElementById('tierDistributionChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: tierData.labels,
+                        datasets: [{
+                            data: tierData.counts,
+                            backgroundColor: [
+                                'rgba(255,255,255,0.18)',
+                                'rgba(205,127,50,0.8)',
+                                'rgba(192,192,192,0.8)',
+                                'rgba(255,184,48,0.85)',
+                                'rgba(160,178,198,0.85)'
+                            ],
+                            borderColor: 'rgba(255,255,255,0.1)',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                labels: { color: 'rgba(255,255,255,0.75)', padding: 12 }
+                            }
+                        },
+                        cutout: '60%'
+                    }
+                });
+
+                // New customers per month
+                if (newCustomersChart) newCustomersChart.destroy();
+                newCustomersChart = new Chart(document.getElementById('newCustomersChart'), {
+                    type: 'line',
+                    data: {
+                        labels: newCustData.months,
+                        datasets: [{
+                            label: 'New Customers',
+                            data: newCustData.totals,
+                            borderColor: '#7EB3FF',
+                            backgroundColor: 'rgba(126,179,255,0.12)',
+                            fill: true,
+                            tension: 0.3,
+                            pointBackgroundColor: '#7EB3FF',
+                            pointRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: darkScales
+                    }
+                });
+
+                // Top 10 customers table
+                const tbody = document.getElementById('topCustomersBody');
+                if (!topData.customers || topData.customers.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="redemption-empty">No customers yet.</td></tr>';
+                } else {
+                    const medals = ['🥇','🥈','🥉'];
+                    tbody.innerHTML = topData.customers.map((c, i) => {
+                        const rank = getRank(c.total_dropoffs);
+                        const rankBadge = rank
+                            ? `<span class="rank-badge ${rank.class}">${rank.icon} ${rank.name}</span>`
+                            : '<span style="color:rgba(255,255,255,0.4);font-size:12px;">No rank</span>';
+                        return `<tr>
+                            <td class="top-rank-num">${medals[i] || (i + 1)}</td>
+                            <td><strong>${c.first_name} ${c.last_name}</strong></td>
+                            <td>${rankBadge}</td>
+                            <td style="color:#FFB830;font-weight:700;">${c.total_dropoffs}</td>
+                            <td>${c.rewards_redeemed}</td>
+                        </tr>`;
+                    }).join('');
+                }
+
             } catch (error) {
                 console.error('Failed to load analytics:', error);
             }

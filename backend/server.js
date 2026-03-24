@@ -547,12 +547,23 @@ app.get('/api/stats', async (req, res) => {
             'SELECT COALESCE(SUM(rewards_redeemed), 0) as total FROM customers'
         );
 
+        // Active customers this month (had at least one drop-off)
+        const activeThisMonth = await pool.query(
+            `SELECT COUNT(DISTINCT customer_id) FROM dropoffs WHERE date >= $1`,
+            [firstOfMonth]
+        );
+
+        const total = parseInt(totalCustomers.rows[0].count);
+        const totalDrop = parseInt(totalDropoffs.rows[0].total);
+
         res.json({
-            totalCustomers: parseInt(totalCustomers.rows[0].count),
+            totalCustomers: total,
             newCustomersThisMonth: parseInt(newCustomersThisMonth.rows[0].count),
             dropoffsThisMonth: parseInt(dropoffsThisMonth.rows[0].total),
-            totalDropoffs: parseInt(totalDropoffs.rows[0].total),
-            totalRewardsRedeemed: parseInt(totalRewardsRedeemed.rows[0].total)
+            totalDropoffs: totalDrop,
+            totalRewardsRedeemed: parseInt(totalRewardsRedeemed.rows[0].total),
+            activeCustomersThisMonth: parseInt(activeThisMonth.rows[0].count),
+            avgDropoffsPerCustomer: total > 0 ? (totalDrop / total).toFixed(1) : '0.0'
         });
     } catch (error) {
         console.error('Stats error:', error);
@@ -782,6 +793,83 @@ app.get('/api/analytics/monthly-trend', async (req, res) => {
     }
 });
 
+
+// Analytics: Tier distribution
+app.get('/api/analytics/tier-distribution', async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT
+                COUNT(CASE WHEN total_dropoffs >= 150 THEN 1 END) AS platinum,
+                COUNT(CASE WHEN total_dropoffs >= 50 AND total_dropoffs < 150 THEN 1 END) AS gold,
+                COUNT(CASE WHEN total_dropoffs >= 25 AND total_dropoffs < 50 THEN 1 END) AS silver,
+                COUNT(CASE WHEN total_dropoffs >= 10 AND total_dropoffs < 25 THEN 1 END) AS bronze,
+                COUNT(CASE WHEN total_dropoffs < 10 THEN 1 END) AS none
+             FROM customers`
+        );
+        const row = result.rows[0];
+        res.json({
+            labels: ['No Rank', 'Bronze', 'Silver', 'Gold', 'Platinum'],
+            counts: [
+                parseInt(row.none),
+                parseInt(row.bronze),
+                parseInt(row.silver),
+                parseInt(row.gold),
+                parseInt(row.platinum)
+            ]
+        });
+    } catch (error) {
+        console.error('Tier distribution error:', error);
+        res.status(500).json({ error: 'Failed to fetch tier distribution', details: error.message });
+    }
+});
+
+// Analytics: Top 10 customers by drop-offs
+app.get('/api/analytics/top-customers', async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT first_name, last_name, total_dropoffs, rewards_redeemed
+             FROM customers
+             ORDER BY total_dropoffs DESC
+             LIMIT 10`
+        );
+        res.json({ customers: result.rows });
+    } catch (error) {
+        console.error('Top customers error:', error);
+        res.status(500).json({ error: 'Failed to fetch top customers', details: error.message });
+    }
+});
+
+// Analytics: New customers per month (last 12 months)
+app.get('/api/analytics/new-customers-monthly', async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT DATE_TRUNC('month', created_at) AS month, COUNT(*) AS total
+             FROM customers
+             WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '11 months'
+             GROUP BY month
+             ORDER BY month`
+        );
+
+        const months = [];
+        const totals = [];
+        const now = new Date();
+        for (let i = 11; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const label = d.toLocaleString('default', { month: 'short', year: '2-digit' });
+            months.push(label);
+            const match = result.rows.find(r => {
+                const rowDate = new Date(r.month);
+                return rowDate.getFullYear() === d.getFullYear() && rowDate.getMonth() === d.getMonth();
+            });
+            totals.push(match ? parseInt(match.total) : 0);
+        }
+
+        res.json({ months, totals });
+    } catch (error) {
+        console.error('New customers monthly error:', error);
+        res.status(500).json({ error: 'Failed to fetch new customers monthly', details: error.message });
+    }
+});
 
 // Initialize database and start server
 initializeDatabase().then(() => {
