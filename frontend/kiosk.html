@@ -1699,16 +1699,21 @@
 
         // Format phone number as user types
         document.getElementById('phoneInput').addEventListener('input', function() {
-            const digits = this.value.replace(/\D/g, '').slice(0, 10);
+            const input = this;
+            const digits = input.value.replace(/\D/g, '').slice(0, 10);
+            let formatted;
             if (digits.length === 0) {
-                this.value = '';
+                formatted = '';
             } else if (digits.length <= 3) {
-                this.value = digits;
+                formatted = digits;
             } else if (digits.length <= 6) {
-                this.value = `(${digits.slice(0,3)}) ${digits.slice(3)}`;
+                formatted = `(${digits.slice(0,3)}) ${digits.slice(3)}`;
             } else {
-                this.value = `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
+                formatted = `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
             }
+            // setTimeout defers the assignment — iOS Safari blocks synchronous
+            // value changes on type="tel" inside the input event handler
+            setTimeout(() => { input.value = formatted; }, 0);
         });
 
         // Phone submission - looks up customer and logs drop-off in one step
