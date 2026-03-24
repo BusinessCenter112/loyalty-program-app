@@ -799,8 +799,7 @@ app.get('/api/analytics/tier-distribution', async (req, res) => {
     try {
         const result = await pool.query(
             `SELECT
-                COUNT(CASE WHEN total_dropoffs >= 150 THEN 1 END) AS platinum,
-                COUNT(CASE WHEN total_dropoffs >= 50 AND total_dropoffs < 150 THEN 1 END) AS gold,
+                COUNT(CASE WHEN total_dropoffs >= 50 THEN 1 END) AS gold,
                 COUNT(CASE WHEN total_dropoffs >= 25 AND total_dropoffs < 50 THEN 1 END) AS silver,
                 COUNT(CASE WHEN total_dropoffs >= 10 AND total_dropoffs < 25 THEN 1 END) AS bronze,
                 COUNT(CASE WHEN total_dropoffs < 10 THEN 1 END) AS none
@@ -808,13 +807,12 @@ app.get('/api/analytics/tier-distribution', async (req, res) => {
         );
         const row = result.rows[0];
         res.json({
-            labels: ['No Rank', 'Bronze', 'Silver', 'Gold', 'Platinum'],
+            labels: ['No Rank', 'Bronze', 'Silver', 'Gold'],
             counts: [
                 parseInt(row.none),
                 parseInt(row.bronze),
                 parseInt(row.silver),
-                parseInt(row.gold),
-                parseInt(row.platinum)
+                parseInt(row.gold)
             ]
         });
     } catch (error) {
