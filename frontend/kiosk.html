@@ -467,6 +467,44 @@
             animation: pulse 2s infinite;
         }
 
+        .redeem-callout {
+            background: rgba(255, 184, 48, 0.18);
+            border: 2px solid rgba(255, 184, 48, 0.6);
+            border-radius: 14px;
+            padding: 14px 20px;
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .redeem-callout-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #FFB830;
+            margin-bottom: 5px;
+        }
+
+        .redeem-callout-body {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.5;
+        }
+
+        .tier-progress-banner {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px 18px;
+            margin-top: 14px;
+            text-align: center;
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+        }
+
+        .tier-progress-banner strong {
+            color: #FFB830;
+        }
+
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
@@ -1539,6 +1577,13 @@
                     <div id="rewardBadge" style="display: none;">
                         <div class="reward-badge">🎉 You earned a reward!</div>
                     </div>
+                    <div id="redeemCallout" style="display: none;">
+                        <div class="redeem-callout">
+                            <div class="redeem-callout-title" id="redeemCalloutTitle"></div>
+                            <div class="redeem-callout-body">Let the staff know at the counter and they'll apply your reward to your next transaction.</div>
+                        </div>
+                    </div>
+                    <div id="tierProgressBanner" class="tier-progress-banner" style="display: none;"></div>
                     <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
                         <button class="success-done-btn" id="doneBtn">Done</button>
                         <a href="leaderboard.html" class="success-done-btn" style="text-decoration: none; display: inline-block; background: transparent; color: white; border: 2px solid white; box-shadow: none;">🏆 View Leaderboard</a>
@@ -2044,6 +2089,34 @@
             } else {
                 document.getElementById('rewardBadge').style.display = 'none';
             }
+
+            // Redemption callout — show whenever they have banked rewards
+            const redeemCallout = document.getElementById('redeemCallout');
+            const redeemCalloutTitle = document.getElementById('redeemCalloutTitle');
+            if (eligibleRewards > 0) {
+                redeemCalloutTitle.textContent = eligibleRewards === 1
+                    ? '🎁 You have 1 reward available!'
+                    : `🎁 You have ${eligibleRewards} rewards available!`;
+                redeemCallout.style.display = 'block';
+            } else {
+                redeemCallout.style.display = 'none';
+            }
+
+            // Tier progress banner
+            const tierBanner = document.getElementById('tierProgressBanner');
+            const d = customer.total_dropoffs;
+            let tierMsg = '';
+            if (d >= 50) {
+                tierMsg = '🥇 You\'ve reached <strong>Gold</strong> — the highest tier!';
+            } else if (d >= 25) {
+                tierMsg = `🥈 <strong>Silver</strong> tier unlocked! <strong>${50 - d}</strong> more drop-off${50 - d === 1 ? '' : 's'} to reach <strong>Gold</strong>.`;
+            } else if (d >= 10) {
+                tierMsg = `🥉 <strong>Bronze</strong> tier unlocked! <strong>${25 - d}</strong> more drop-off${25 - d === 1 ? '' : 's'} to reach <strong>Silver</strong>.`;
+            } else {
+                tierMsg = `<strong>${10 - d}</strong> more drop-off${10 - d === 1 ? '' : 's'} to unlock <strong>Bronze</strong> tier rewards!`;
+            }
+            tierBanner.innerHTML = tierMsg;
+            tierBanner.style.display = 'block';
 
             // Update tier display
             updateTierDisplay(customer);
