@@ -2086,10 +2086,15 @@
             const dropsToNext = 10 - (customer.total_dropoffs % 10);
             if (dropsToNext === 10) {
                 document.getElementById('rewardBadge').style.display = 'block';
-                playRewardChime();
             } else {
                 document.getElementById('rewardBadge').style.display = 'none';
             }
+
+            // Play tier unlock chime at exactly Bronze (10), Silver (25), Gold (50)
+            const d = customer.total_dropoffs;
+            if (d === 50) playTierChime('gold');
+            else if (d === 25) playTierChime('silver');
+            else if (d === 10) playTierChime('bronze');
 
             // Redemption callout — show whenever they have banked rewards
             const redeemCallout = document.getElementById('redeemCallout');
@@ -2637,29 +2642,47 @@
             return colors[rankClass] || '#666';
         }
 
-        function playRewardChime() {
+        function playTierChime(tier) {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                // Ascending fanfare: C5 E5 G5 C6
-                const notes = [523.25, 659.25, 783.99, 1046.50];
-                const duration = 0.18;
-                const gap = 0.13;
+                let notes, duration, gap, type;
+
+                if (tier === 'gold') {
+                    // Gold: triumphant 6-note fanfare, louder
+                    notes = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50];
+                    duration = 0.22;
+                    gap = 0.14;
+                    type = 'sine';
+                } else if (tier === 'silver') {
+                    // Silver: smooth 4-note ascending
+                    notes = [587.33, 739.99, 880.00, 1174.66];
+                    duration = 0.20;
+                    gap = 0.14;
+                    type = 'sine';
+                } else {
+                    // Bronze: clean 3-note chime
+                    notes = [523.25, 659.25, 783.99];
+                    duration = 0.18;
+                    gap = 0.14;
+                    type = 'sine';
+                }
+
                 notes.forEach((freq, i) => {
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
                     osc.connect(gain);
                     gain.connect(ctx.destination);
-                    osc.type = 'sine';
+                    osc.type = type;
                     osc.frequency.setValueAtTime(freq, ctx.currentTime);
                     const start = ctx.currentTime + i * gap;
                     gain.gain.setValueAtTime(0, start);
-                    gain.gain.linearRampToValueAtTime(0.4, start + 0.02);
+                    gain.gain.linearRampToValueAtTime(tier === 'gold' ? 0.5 : 0.4, start + 0.02);
                     gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
                     osc.start(start);
                     osc.stop(start + duration);
                 });
             } catch (e) {
-                console.log('Reward chime skipped:', e.message);
+                console.log('Tier chime skipped:', e.message);
             }
         }
 
