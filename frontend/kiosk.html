@@ -24,7 +24,7 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
-            overscroll-behavior: none;
+            overflow: hidden;
         }
 
         @keyframes gradientShift {
@@ -1717,26 +1717,7 @@
         });
 
         // Phone submission - looks up customer and logs drop-off in one step
-        let phoneSubmitBusy = false;
-
-        async function handlePhoneSubmit() {
-            if (phoneSubmitBusy) return;
-            phoneSubmitBusy = true;
-            try {
-                await doPhoneSubmit();
-            } finally {
-                phoneSubmitBusy = false;
-            }
-        }
-
-        document.getElementById('phoneSubmit').addEventListener('touchend', function(e) {
-            e.preventDefault(); // block the subsequent click so it doesn't double-fire
-            handlePhoneSubmit();
-        });
-
-        document.getElementById('phoneSubmit').addEventListener('click', handlePhoneSubmit);
-
-        async function doPhoneSubmit() {
+        document.getElementById('phoneSubmit').addEventListener('click', async () => {
             const phoneInput = document.getElementById('phoneInput');
             const phone = phoneInput.value.replace(/\D/g, '');
 
@@ -1828,7 +1809,7 @@
                 button.textContent = originalText;
                 button.disabled = false;
             }
-        }
+        });
 
         // Log drop-off
         document.getElementById('logDropoffBtn').addEventListener('click', async () => {
