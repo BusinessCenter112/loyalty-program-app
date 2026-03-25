@@ -2820,6 +2820,18 @@
 
             function draw() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw "Web 2.0 Business Center" watermark text
+                ctx.save();
+                ctx.globalAlpha = 0.08;
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const fontSize = Math.min(canvas.width / 10, 72);
+                ctx.font = `900 ${fontSize}px Arial, sans-serif`;
+                ctx.fillText('Web 2.0 Business Center', canvas.width / 2, canvas.height / 2);
+                ctx.restore();
+
                 dots.forEach(d => {
                     ctx.beginPath();
                     ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
@@ -2844,8 +2856,8 @@
 
     </script>
 
-    <p style="position:fixed; bottom:12px; left:0; right:0; text-align:center; color:rgba(255,184,48,0.85); font-size:12px; font-weight:700; letter-spacing:0.04em; pointer-events:none; z-index:200;">
-        Powered by Main Street Rewards
+    <p style="position:fixed; bottom:14px; left:0; right:0; text-align:center; color:rgba(255,184,48,0.95); font-size:18px; font-weight:800; letter-spacing:0.08em; pointer-events:none; z-index:200; text-shadow: 0 1px 8px rgba(0,0,0,0.4);">
+        Main Street Rewards
     </p>
 </body>
 </html>
