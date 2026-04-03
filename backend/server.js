@@ -869,6 +869,24 @@ app.get('/api/analytics/new-customers-monthly', async (req, res) => {
     }
 });
 
+// Analytics: Top referrers
+app.get('/api/analytics/top-referrers', async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT INITCAP(LOWER(TRIM(referred_by))) AS name, COUNT(*) AS referral_count
+             FROM customers
+             WHERE referred_by IS NOT NULL AND TRIM(referred_by) != ''
+             GROUP BY LOWER(TRIM(referred_by))
+             ORDER BY referral_count DESC
+             LIMIT 10`
+        );
+        res.json({ referrers: result.rows });
+    } catch (error) {
+        console.error('Top referrers error:', error);
+        res.status(500).json({ error: 'Failed to fetch top referrers', details: error.message });
+    }
+});
+
 // Initialize database and start server
 initializeDatabase().then(() => {
     app.listen(PORT, () => {

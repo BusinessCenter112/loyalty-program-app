@@ -944,6 +944,28 @@
             </div>
         </div>
 
+        <!-- Top Referrers -->
+        <div class="redemption-log-section" style="margin-bottom: 20px;">
+            <div class="redemption-log-header">
+                <div class="redemption-log-title">Top Referrers</div>
+                <div class="redemption-log-count">Who's bringing in the most customers</div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="top-customers-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Referred By</th>
+                            <th>Customers Referred</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topReferrersBody">
+                        <tr><td colspan="3" class="redemption-empty">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- Redemption Log -->
         <div class="redemption-log-section">
             <div class="redemption-log-header">
@@ -1193,12 +1215,13 @@
 
         async function loadAnalytics() {
             try {
-                const [dayRes, monthRes, tierRes, newCustRes, topRes] = await Promise.all([
+                const [dayRes, monthRes, tierRes, newCustRes, topRes, referrersRes] = await Promise.all([
                     fetch(`${API_URL}/analytics/dropoffs-by-day`),
                     fetch(`${API_URL}/analytics/monthly-trend`),
                     fetch(`${API_URL}/analytics/tier-distribution`),
                     fetch(`${API_URL}/analytics/new-customers-monthly`),
-                    fetch(`${API_URL}/analytics/top-customers`)
+                    fetch(`${API_URL}/analytics/top-customers`),
+                    fetch(`${API_URL}/analytics/top-referrers`)
                 ]);
 
                 const dayData = await dayRes.json();
@@ -1206,6 +1229,7 @@
                 const tierData = await tierRes.json();
                 const newCustData = await newCustRes.json();
                 const topData = await topRes.json();
+                const referrersData = await referrersRes.json();
 
                 // Day of week bar chart
                 if (dayOfWeekChart) dayOfWeekChart.destroy();
@@ -1358,6 +1382,19 @@
                             <td>${c.rewards_redeemed}</td>
                         </tr>`;
                     }).join('');
+                }
+
+                // Top referrers table
+                const referrersTbody = document.getElementById('topReferrersBody');
+                if (!referrersData.referrers || referrersData.referrers.length === 0) {
+                    referrersTbody.innerHTML = '<tr><td colspan="3" class="redemption-empty">No referrals recorded yet.</td></tr>';
+                } else {
+                    const medals = ['🥇','🥈','🥉'];
+                    referrersTbody.innerHTML = referrersData.referrers.map((r, i) => `<tr>
+                        <td class="top-rank-num">${medals[i] || (i + 1)}</td>
+                        <td><strong>${r.name}</strong></td>
+                        <td style="color:#4169E1;font-weight:700;">${r.referral_count}</td>
+                    </tr>`).join('');
                 }
 
             } catch (error) {
