@@ -831,6 +831,7 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 </head>
 <body>
     <!-- Audio Elements -->
@@ -1176,15 +1177,17 @@
         let newCustomersChart = null;
 
         // Shared Chart.js defaults for dark background
-        const darkScales = {
+        Chart.register(ChartDataLabels);
+
+        const lightScales = {
             x: {
-                ticks: { color: 'rgba(255,255,255,0.6)', precision: 0 },
-                grid: { color: 'rgba(255,255,255,0.08)' }
+                ticks: { color: '#666', precision: 0, font: { weight: '600' } },
+                grid: { color: 'rgba(0,0,0,0.05)' }
             },
             y: {
                 beginAtZero: true,
-                ticks: { color: 'rgba(255,255,255,0.6)', precision: 0 },
-                grid: { color: 'rgba(255,255,255,0.08)' }
+                ticks: { color: '#666', precision: 0 },
+                grid: { color: 'rgba(0,0,0,0.05)' }
             }
         };
 
@@ -1213,16 +1216,25 @@
                         datasets: [{
                             label: 'Drop-offs',
                             data: dayData.totals,
-                            backgroundColor: 'rgba(255,184,48,0.7)',
-                            borderColor: '#FFB830',
+                            backgroundColor: 'rgba(65,105,225,0.75)',
+                            borderColor: '#4169E1',
                             borderWidth: 1,
-                            borderRadius: 5
+                            borderRadius: 6
                         }]
                     },
                     options: {
                         responsive: true,
-                        plugins: { legend: { display: false } },
-                        scales: darkScales
+                        plugins: {
+                            legend: { display: false },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                color: '#333',
+                                font: { weight: 'bold', size: 12 },
+                                formatter: v => v || ''
+                            }
+                        },
+                        scales: lightScales
                     }
                 });
 
@@ -1235,18 +1247,26 @@
                         datasets: [{
                             label: 'Drop-offs',
                             data: monthData.totals,
-                            borderColor: '#FFB830',
-                            backgroundColor: 'rgba(255,184,48,0.12)',
+                            borderColor: '#4169E1',
+                            backgroundColor: 'rgba(65,105,225,0.08)',
                             fill: true,
                             tension: 0.3,
-                            pointBackgroundColor: '#FFB830',
-                            pointRadius: 4
+                            pointBackgroundColor: '#4169E1',
+                            pointRadius: 5
                         }]
                     },
                     options: {
                         responsive: true,
-                        plugins: { legend: { display: false } },
-                        scales: darkScales
+                        plugins: {
+                            legend: { display: false },
+                            datalabels: {
+                                align: 'top',
+                                color: '#333',
+                                font: { weight: 'bold', size: 11 },
+                                formatter: v => v || ''
+                            }
+                        },
+                        scales: lightScales
                     }
                 });
 
@@ -1259,23 +1279,31 @@
                         datasets: [{
                             data: tierData.counts,
                             backgroundColor: [
-                                'rgba(255,255,255,0.18)',
-                                'rgba(205,127,50,0.8)',
-                                'rgba(192,192,192,0.8)',
-                                'rgba(255,184,48,0.85)'
+                                '#e0e3ee',
+                                '#CD7F32',
+                                '#A8A8A8',
+                                '#FFD700'
                             ],
-                            borderColor: 'rgba(255,255,255,0.1)',
-                            borderWidth: 2
+                            borderColor: 'white',
+                            borderWidth: 3
                         }]
                     },
                     options: {
                         responsive: true,
                         plugins: {
                             legend: {
-                                labels: { color: 'rgba(255,255,255,0.75)', padding: 12 }
+                                labels: { color: '#333', padding: 14, font: { weight: '600' } }
+                            },
+                            datalabels: {
+                                color: 'white',
+                                font: { weight: 'bold', size: 13 },
+                                formatter: (v, ctx) => {
+                                    const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                    return total > 0 && v > 0 ? Math.round(v / total * 100) + '%' : '';
+                                }
                             }
                         },
-                        cutout: '60%'
+                        cutout: '55%'
                     }
                 });
 
@@ -1288,18 +1316,26 @@
                         datasets: [{
                             label: 'New Customers',
                             data: newCustData.totals,
-                            borderColor: '#7EB3FF',
-                            backgroundColor: 'rgba(126,179,255,0.12)',
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16,185,129,0.08)',
                             fill: true,
                             tension: 0.3,
-                            pointBackgroundColor: '#7EB3FF',
-                            pointRadius: 4
+                            pointBackgroundColor: '#10b981',
+                            pointRadius: 5
                         }]
                     },
                     options: {
                         responsive: true,
-                        plugins: { legend: { display: false } },
-                        scales: darkScales
+                        plugins: {
+                            legend: { display: false },
+                            datalabels: {
+                                align: 'top',
+                                color: '#333',
+                                font: { weight: 'bold', size: 11 },
+                                formatter: v => v || ''
+                            }
+                        },
+                        scales: lightScales
                     }
                 });
 
@@ -1313,12 +1349,12 @@
                         const rank = getRank(c.total_dropoffs);
                         const rankBadge = rank
                             ? `<span class="rank-badge ${rank.class}">${rank.icon} ${rank.name}</span>`
-                            : '<span style="color:rgba(255,255,255,0.4);font-size:12px;">No rank</span>';
+                            : '<span style="color:#bbb;font-size:12px;">No rank</span>';
                         return `<tr>
                             <td class="top-rank-num">${medals[i] || (i + 1)}</td>
                             <td><strong>${c.first_name} ${c.last_name}</strong></td>
                             <td>${rankBadge}</td>
-                            <td style="color:#FFB830;font-weight:700;">${c.total_dropoffs}</td>
+                            <td style="color:#4169E1;font-weight:700;">${c.total_dropoffs}</td>
                             <td>${c.rewards_redeemed}</td>
                         </tr>`;
                     }).join('');
