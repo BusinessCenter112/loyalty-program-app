@@ -331,6 +331,42 @@
             padding: 12px;
         }
 
+        .consent-group {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin: 16px 0 20px;
+        }
+
+        .consent-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .consent-label input[type="checkbox"] {
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            margin-top: 2px;
+            accent-color: #FFB830;
+            cursor: pointer;
+        }
+
+        .consent-label span {
+            font-size: 12px;
+            color: #ccc;
+            line-height: 1.5;
+        }
+
+        .consent-label a {
+            color: #FFB830;
+            text-decoration: underline;
+        }
+
         .customer-info {
             background: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.18);
@@ -1544,9 +1580,19 @@
                 <input type="text" id="referredBy" placeholder="Name of person who referred you">
             </div>
 
+            <div class="consent-group">
+                <label class="consent-label">
+                    <input type="checkbox" id="emailConsent">
+                    <span>By providing your email address you consent to receive news and updates about our business via email. You can unsubscribe at any time.</span>
+                </label>
+                <label class="consent-label">
+                    <input type="checkbox" id="smsConsent">
+                    <span>By providing your mobile number and selecting the opt-in box, you agree to receive recurring promotional and automated text messages, including reward reminders from Web 2.0 Business Center. Message and data rates may apply. Message frequency may vary. Reply HELP for help; STOP to opt-out. Consent is not a condition for purchase. View our <a href="https://web20businesscenter.com/privacy-policy/" target="_blank" rel="noopener">privacy policy</a> and <a href="https://web20businesscenter.com/terms-and-conditions/" target="_blank" rel="noopener">terms and conditions</a>.</span>
+                </label>
+            </div>
+
             <button id="registerSubmit">Register & Log Drop-off</button>
             <button class="secondary" id="backFromRegister">Cancel</button>
-            <p style="font-size: 11px; color: #999; text-align: center; margin-top: 10px; line-height: 1.5;">* By providing your phone number and email address, you consent to receive promotional text messages and emails from Web 2.0 Business Center.</p>
 
             <div id="registerError" class="error-message" style="display: none;"></div>
         </div>
@@ -1915,6 +1961,11 @@
 
             if (!email.includes('@')) {
                 showError('registerError', 'Please enter a valid email address');
+                return;
+            }
+
+            if (!document.getElementById('emailConsent').checked || !document.getElementById('smsConsent').checked) {
+                showError('registerError', 'Please check both consent boxes to continue');
                 return;
             }
 
@@ -2726,6 +2777,8 @@
             document.getElementById('lastName').value = '';
             document.getElementById('email').value = '';
             document.getElementById('referredBy').value = '';
+            document.getElementById('emailConsent').checked = false;
+            document.getElementById('smsConsent').checked = false;
             document.getElementById('historySection').style.display = 'none';
             // Reset progress ring
             document.getElementById('progressRing').style.strokeDashoffset = 377;
