@@ -48,7 +48,7 @@
             border: 1px solid rgba(65, 105, 225, 0.35);
             border-radius: 24px;
             box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 80px rgba(65,105,225,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
-            padding: 40px;
+            padding: 52px 48px 44px;
             max-width: 580px;
             width: 100%;
             text-align: center;
@@ -87,10 +87,19 @@
         }
 
         #phoneScreen h1 {
-            font-size: 36px;
-            letter-spacing: -1px;
-            line-height: 1.15;
-            margin-bottom: 14px;
+            font-size: 38px;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 10px;
+        }
+
+        .screen-eyebrow {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #4169E1;
+            margin-bottom: 12px;
         }
 
         .subtitle {
@@ -141,7 +150,7 @@
         }
 
         .success-header {
-            padding: 30px 20px 20px;
+            padding: 48px 32px 28px;
             text-align: center;
             color: white;
         }
@@ -162,16 +171,24 @@
         .success-stats {
             display: flex;
             justify-content: center;
-            gap: 40px;
-            margin-bottom: 15px;
+            gap: 14px;
+            margin-bottom: 24px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .success-stat {
+            flex: 1;
             text-align: center;
+            background: rgba(65, 105, 225, 0.12);
+            border: 1px solid rgba(65, 105, 225, 0.25);
+            border-radius: 18px;
+            padding: 24px 16px;
         }
 
         .success-stat-number {
-            font-size: 72px;
+            font-size: 64px;
             font-weight: 900;
             color: white;
             letter-spacing: -2px;
@@ -179,9 +196,9 @@
         }
 
         .success-stat-label {
-            font-size: 13px;
+            font-size: 12px;
             color: rgba(255, 255, 255, 0.45);
-            margin-top: 8px;
+            margin-top: 10px;
             text-transform: uppercase;
             letter-spacing: 0.8px;
             font-weight: 600;
@@ -305,9 +322,9 @@
         button, a#phoneSubmit {
             width: 100%;
             padding: 20px;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
-            letter-spacing: 0.2px;
+            letter-spacing: 0.3px;
             color: white;
             background: #4169E1;
             border: none;
@@ -315,10 +332,9 @@
             cursor: pointer;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
-            transition: transform 0.2s, box-shadow 0.25s;
+            transition: transform 0.15s, box-shadow 0.15s;
             margin-bottom: 10px;
-            box-shadow: 0 4px 24px rgba(65, 105, 225, 0.5), 0 0 0 1px rgba(65, 105, 225, 0.3);
-            animation: btnPulse 3s ease-in-out infinite;
+            box-shadow: 0 4px 20px rgba(65, 105, 225, 0.45);
         }
 
         a#phoneSubmit {
@@ -328,32 +344,28 @@
             box-sizing: border-box;
         }
 
-        @keyframes btnPulse {
-            0%, 100% { box-shadow: 0 4px 24px rgba(65,105,225,0.5), 0 0 0 1px rgba(65,105,225,0.3); }
-            50%       { box-shadow: 0 4px 36px rgba(65,105,225,0.75), 0 0 0 1px rgba(65,105,225,0.5); }
-        }
-
         button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 36px rgba(65,105,225,0.65), 0 0 0 1px rgba(65,105,225,0.4);
-            animation: none;
+            box-shadow: 0 10px 30px rgba(65, 105, 225, 0.6);
         }
 
         button:active {
             transform: translateY(0);
+            box-shadow: 0 4px 20px rgba(65, 105, 225, 0.45);
         }
 
         button.secondary {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            font-size: 16px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 15px;
             padding: 14px;
             box-shadow: none;
-            animation: none;
         }
 
         button.secondary:hover {
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.8);
             box-shadow: none;
         }
 
@@ -394,40 +406,53 @@
         }
 
         .customer-info {
-            background: rgba(65, 105, 225, 0.08);
-            border: 1px solid rgba(65, 105, 225, 0.25);
-            padding: 30px;
-            border-radius: 16px;
-            margin-bottom: 30px;
+            background: rgba(65, 105, 225, 0.07);
+            border: 1px solid rgba(65, 105, 225, 0.2);
+            padding: 32px 28px;
+            border-radius: 20px;
+            margin-bottom: 28px;
         }
 
         .customer-name {
-            font-size: 32px;
-            font-weight: bold;
+            font-size: 40px;
+            font-weight: 900;
             color: white;
-            margin-bottom: 20px;
+            letter-spacing: -1px;
+            line-height: 1.1;
+            margin-bottom: 14px;
         }
 
         .stats {
             display: flex;
-            justify-content: space-around;
+            justify-content: center;
+            gap: 14px;
             margin-top: 20px;
         }
 
         .stat {
+            flex: 1;
             text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(65, 105, 225, 0.2);
+            border-radius: 14px;
+            padding: 18px 12px;
         }
 
         .stat-number {
-            font-size: 36px;
-            font-weight: 800;
-            color: #4169E1;
+            font-size: 40px;
+            font-weight: 900;
+            color: white;
+            letter-spacing: -1px;
+            line-height: 1;
         }
 
         .stat-label {
-            color: rgba(255,255,255,0.78);
-            font-size: 14px;
-            margin-top: 5px;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-top: 8px;
         }
 
         .progress-ring-container {
@@ -597,18 +622,18 @@
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 18px;
             text-align: left;
         }
 
         .form-group label {
             display: block;
-            color: rgba(255,255,255,0.5);
-            margin-bottom: 5px;
-            font-size: 13px;
-            font-weight: 600;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 8px;
+            font-size: 11px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.6px;
+            letter-spacing: 1px;
         }
 
         .info-text {
@@ -1514,7 +1539,8 @@
                     </svg>
                 </a>
             </div>
-            <h1>Web 2.0 Business Center<br>Rewards Club</h1>
+            <p class="screen-eyebrow">Main Street Rewards</p>
+            <h1>Web 2.0 Business<br>Center Rewards Club</h1>
             <p class="subtitle">Enter your phone number to get started</p>
 
             <div style="width:100%;">
@@ -1532,7 +1558,7 @@
 
         <!-- Customer Found Screen -->
         <div id="customerScreen" class="screen">
-            <div class="logo">👋</div>
+            <p class="screen-eyebrow">Welcome back</p>
             <div class="customer-info">
                 <div class="customer-name" id="customerName"></div>
                 <div id="customerRank" class="rank-badge no-rank" style="display: none;">
@@ -1581,7 +1607,7 @@
 
         <!-- Registration Screen -->
         <div id="registerScreen" class="screen">
-            <div class="logo">📝</div>
+            <p class="screen-eyebrow">Main Street Rewards</p>
             <h1>New Customer</h1>
             <p class="subtitle">Let's get you registered!</p>
 
@@ -1638,8 +1664,8 @@
             </a>
             <div class="success-scroll">
                 <div class="success-header">
-                    <div class="success-icon">✅</div>
-                    <p id="successWelcome" style="font-size: 20px; color: rgba(255,255,255,0.9); margin-bottom: 5px;"></p>
+                    <p class="screen-eyebrow" style="margin-bottom: 10px;">Main Street Rewards</p>
+                    <p id="successWelcome" style="font-size: 18px; color: rgba(255,255,255,0.55); margin-bottom: 6px; font-weight: 500;"></p>
                     <h1>Drop-off Logged!</h1>
                     <div id="successRank" class="rank-badge no-rank" style="display: none;">
                         <span class="rank-icon"></span>
