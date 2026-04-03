@@ -1557,7 +1557,7 @@
 
         <!-- Customer Found Screen -->
         <div id="customerScreen" class="screen">
-            <p class="screen-eyebrow">Welcome back</p>
+            <p class="screen-eyebrow" id="customerEyebrow">Welcome back</p>
             <div class="customer-info">
                 <div class="customer-name" id="customerName"></div>
                 <div id="customerRank" class="rank-badge no-rank" style="display: none;">
@@ -1703,6 +1703,7 @@
                         <button class="success-done-btn" id="doneBtn">Done</button>
                         <a href="leaderboard.html" class="success-done-btn" style="text-decoration: none; display: inline-block; background: transparent; color: white; border: 2px solid white; box-shadow: none;">🏆 View Leaderboard</a>
                     </div>
+                    <p id="successCountdown" style="margin-top: 14px; font-size: 13px; color: rgba(255,255,255,0.3); letter-spacing: 0.3px;"></p>
                 </div>
 
                 <!-- Inline Tier Cards -->
@@ -1773,7 +1774,8 @@
         let currentCustomer = null;
         let currentPhone = '';
         let successScreenTimer = null;
-        const SUCCESS_SCREEN_TIMEOUT = 30000; // 30 seconds
+        let successCountdownInterval = null;
+        const SUCCESS_SCREEN_TIMEOUT = 60000; // 60 seconds
 
         // Screen management
         function showScreen(screenId) {
@@ -1799,6 +1801,13 @@
 
         function startSuccessTimer() {
             clearSuccessTimer();
+            let secondsLeft = SUCCESS_SCREEN_TIMEOUT / 1000;
+            const countdownEl = document.getElementById('successCountdown');
+            if (countdownEl) countdownEl.textContent = `Returning to start in ${secondsLeft}s`;
+            successCountdownInterval = setInterval(() => {
+                secondsLeft--;
+                if (countdownEl) countdownEl.textContent = `Returning to start in ${secondsLeft}s`;
+            }, 1000);
             successScreenTimer = setTimeout(() => {
                 resetToStart();
             }, SUCCESS_SCREEN_TIMEOUT);
@@ -1809,6 +1818,12 @@
                 clearTimeout(successScreenTimer);
                 successScreenTimer = null;
             }
+            if (successCountdownInterval) {
+                clearInterval(successCountdownInterval);
+                successCountdownInterval = null;
+            }
+            const countdownEl = document.getElementById('successCountdown');
+            if (countdownEl) countdownEl.textContent = '';
         }
 
         // Format phone number as user types
@@ -2145,6 +2160,8 @@
         function displayCustomer(customer, eligibleRewards) {
             document.getElementById('customerName').textContent =
                 `${customer.first_name} ${customer.last_name}`;
+            document.getElementById('customerEyebrow').textContent =
+                `Hey, ${customer.first_name}!`;
             document.getElementById('totalDropoffs').textContent = customer.total_dropoffs;
             document.getElementById('rewardsEarned').textContent = eligibleRewards;
 
