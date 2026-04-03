@@ -25,7 +25,9 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         @keyframes gradientShift {
@@ -57,7 +59,7 @@
             max-width: 580px;
             width: 100%;
             text-align: center;
-            overflow: hidden;
+            overflow: visible;
         }
 
         .container::before {
