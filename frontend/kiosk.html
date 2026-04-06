@@ -1689,32 +1689,31 @@
             animation: jolt2 0.5s ease-out !important;
         }
 
+        .attract-bubble {
+            z-index: 2;
+        }
+
         /* Tap to continue hint */
         #attractTapHint {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: #fff;
-            font-size: 26px;
-            font-weight: 900;
-            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
             text-align: center;
-            text-shadow: 0 2px 16px rgba(0,60,120,0.5), 0 0 40px rgba(255,255,255,0.3);
-            background: rgba(0, 80, 160, 0.35);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            border: 2px solid rgba(255,255,255,0.5);
-            border-radius: 20px;
-            padding: 18px 36px;
+            text-shadow: 0 1px 8px rgba(0, 60, 120, 0.4);
             white-space: nowrap;
-            animation: tapVibrate 0.12s ease-in-out infinite alternate;
+            animation: tapPulse 2.2s ease-in-out infinite;
             pointer-events: none;
-            z-index: 10;
+            z-index: 1;
         }
-        @keyframes tapVibrate {
-            0%   { transform: translate(-50%, -50%) translateX(-2px) rotate(-0.4deg); }
-            100% { transform: translate(-50%, -50%) translateX(2px) rotate(0.4deg); }
+        @keyframes tapPulse {
+            0%,100% { opacity: 0.35; }
+            50%     { opacity: 0.85; }
         }
 
         @keyframes decoFloat {
