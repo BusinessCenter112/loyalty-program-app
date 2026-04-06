@@ -1485,6 +1485,230 @@
             background: rgba(255, 255, 255, 0.12);
             box-shadow: none;
         }
+
+        /* ========== ATTRACT / IDLE SCREEN ========== */
+        #attractScreen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 500;
+            background: linear-gradient(175deg, #a8d8f0 0%, #6db8e8 35%, #3a9cd6 70%, #2176ae 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+            overflow: hidden;
+        }
+        #attractScreen.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* Cloud shapes */
+        .attract-cloud {
+            position: absolute;
+            background: rgba(255,255,255,0.55);
+            border-radius: 50px;
+            filter: blur(18px);
+            pointer-events: none;
+        }
+        .attract-cloud-1 {
+            width: 280px; height: 80px;
+            top: 12%; left: -60px;
+            animation: cloudDrift1 28s linear infinite;
+        }
+        .attract-cloud-2 {
+            width: 220px; height: 60px;
+            top: 28%; right: -40px;
+            animation: cloudDrift2 34s linear infinite;
+        }
+        .attract-cloud-3 {
+            width: 340px; height: 90px;
+            top: 60%; left: -80px;
+            animation: cloudDrift3 40s linear infinite;
+        }
+        @keyframes cloudDrift1 {
+            0%   { transform: translateX(0); }
+            50%  { transform: translateX(calc(100vw + 340px)); }
+            50.001% { transform: translateX(-340px); }
+            100% { transform: translateX(0); }
+        }
+        @keyframes cloudDrift2 {
+            0%   { transform: translateX(0); }
+            50%  { transform: translateX(calc(-100vw - 280px)); }
+            50.001% { transform: translateX(280px); }
+            100% { transform: translateX(0); }
+        }
+        @keyframes cloudDrift3 {
+            0%   { transform: translateX(0); }
+            50%  { transform: translateX(calc(100vw + 420px)); }
+            50.001% { transform: translateX(-420px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Small decorative bubbles (background) */
+        .attract-deco-bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.5) 0%, rgba(180,225,255,0.15) 60%, transparent 100%);
+            border: 1px solid rgba(255,255,255,0.35);
+            pointer-events: none;
+            animation: decoFloat linear infinite;
+        }
+
+        /* Main soap bubbles */
+        .attract-bubble {
+            position: absolute;
+            width: 220px; height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%,
+                rgba(255,255,255,0.55) 0%,
+                rgba(180,220,255,0.22) 40%,
+                rgba(100,180,255,0.12) 70%,
+                transparent 100%);
+            border: 2px solid rgba(255,255,255,0.7);
+            box-shadow: inset 0 0 30px rgba(100,180,255,0.2),
+                        inset 0 -10px 20px rgba(0,100,200,0.1),
+                        0 8px 32px rgba(0,80,160,0.25);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .attract-bubble::before {
+            content: '';
+            position: absolute;
+            top: 18%;
+            left: 22%;
+            width: 35%;
+            height: 22%;
+            background: radial-gradient(ellipse, rgba(255,255,255,0.75) 0%, transparent 80%);
+            border-radius: 50%;
+            transform: rotate(-30deg);
+        }
+        .attract-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: 18%;
+            right: 20%;
+            width: 40%;
+            height: 15%;
+            background: radial-gradient(ellipse, rgba(100,200,255,0.35) 0%, transparent 80%);
+            border-radius: 50%;
+        }
+        .attract-bubble-text {
+            position: relative;
+            z-index: 1;
+            color: #0d3a5e;
+            font-weight: 800;
+            font-size: 18px;
+            line-height: 1.25;
+            letter-spacing: -0.3px;
+            text-shadow: 0 1px 3px rgba(255,255,255,0.6);
+        }
+        .attract-bubble-eyebrow {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #1a5276;
+            margin-bottom: 4px;
+            opacity: 0.8;
+        }
+
+        /* Bubble 1 - upper left area */
+        #attractBubble1 {
+            left: 30%;
+            top: 35%;
+            transform: translate(-50%, -50%);
+            animation: floatB1 8s ease-in-out infinite;
+        }
+        /* Bubble 2 - lower right area */
+        #attractBubble2 {
+            left: 62%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            animation: floatB2 10s ease-in-out infinite;
+        }
+        /* Bubble 3 - promo bubble, starts off-screen */
+        #attractBubble3 {
+            left: 48%;
+            top: 68%;
+            transform: translate(-50%, -50%) translate(200vw, 150vh);
+        }
+        #attractBubble3.incoming {
+            transform: translate(-50%, -50%) translate(0, 0);
+        }
+        #attractBubble3.floating3 {
+            animation: floatB3 9s ease-in-out infinite;
+        }
+
+        @keyframes floatB1 {
+            0%,100% { transform: translate(-50%, -50%) translateY(0px) rotate(-2deg); }
+            33%     { transform: translate(-50%, -50%) translateY(-18px) rotate(1deg); }
+            66%     { transform: translate(-50%, -50%) translateY(8px) rotate(-1deg); }
+        }
+        @keyframes floatB2 {
+            0%,100% { transform: translate(-50%, -50%) translateY(0px) rotate(2deg); }
+            40%     { transform: translate(-50%, -50%) translateY(-14px) rotate(-1deg); }
+            70%     { transform: translate(-50%, -50%) translateY(10px) rotate(2deg); }
+        }
+        @keyframes floatB3 {
+            0%,100% { transform: translate(-50%, -50%) translateY(0px) rotate(1deg); }
+            50%     { transform: translate(-50%, -50%) translateY(-12px) rotate(-2deg); }
+        }
+
+        /* Jolt animations */
+        @keyframes jolt1 {
+            0%   { transform: translate(-50%, -50%) translateY(0) rotate(-2deg); }
+            25%  { transform: translate(calc(-50% - 22px), calc(-50% - 16px)) rotate(-6deg); }
+            60%  { transform: translate(calc(-50% + 6px), calc(-50% + 5px)) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) translateY(0) rotate(-2deg); }
+        }
+        @keyframes jolt2 {
+            0%   { transform: translate(-50%, -50%) translateY(0) rotate(2deg); }
+            25%  { transform: translate(calc(-50% + 22px), calc(-50% - 14px)) rotate(6deg); }
+            60%  { transform: translate(calc(-50% - 6px), calc(-50% + 4px)) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) translateY(0) rotate(2deg); }
+        }
+        #attractBubble1.jolted1 {
+            animation: jolt1 0.5s ease-out !important;
+        }
+        #attractBubble2.jolted2 {
+            animation: jolt2 0.5s ease-out !important;
+        }
+
+        /* Tap to continue hint */
+        #attractTapHint {
+            position: absolute;
+            bottom: 48px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(10, 50, 90, 0.75);
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            animation: tapPulse 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes tapPulse {
+            0%,100% { opacity: 0.5; }
+            50%     { opacity: 1.0; }
+        }
+
+        @keyframes decoFloat {
+            0%   { transform: translateY(0) scale(1); opacity: 0.7; }
+            50%  { transform: translateY(-30px) scale(1.05); opacity: 0.9; }
+            100% { transform: translateY(0) scale(1); opacity: 0.7; }
+        }
     </style>
 </head>
 <body>
@@ -1525,6 +1749,35 @@
                 <div class="badge-text">status!</div>
             </div>
         </div>
+    </div>
+
+    <!-- ========== ATTRACT / IDLE SCREEN ========== -->
+    <div id="attractScreen">
+        <!-- Clouds -->
+        <div class="attract-cloud attract-cloud-1"></div>
+        <div class="attract-cloud attract-cloud-2"></div>
+        <div class="attract-cloud attract-cloud-3"></div>
+
+        <!-- Bubble 1: Web 2.0 Business Center -->
+        <div class="attract-bubble" id="attractBubble1">
+            <div class="attract-bubble-text">Web 2.0<br>Business Center</div>
+        </div>
+
+        <!-- Bubble 2: Powered by Main Street Rewards -->
+        <div class="attract-bubble" id="attractBubble2">
+            <div class="attract-bubble-text">
+                <span class="attract-bubble-eyebrow">Powered by</span>
+                Main Street Rewards
+            </div>
+        </div>
+
+        <!-- Bubble 3: Promo bubble (enters every 20s) -->
+        <div class="attract-bubble" id="attractBubble3">
+            <div class="attract-bubble-text">Ask us about building your own rewards club!</div>
+        </div>
+
+        <!-- Tap hint -->
+        <div id="attractTapHint">Tap anywhere to continue</div>
     </div>
 
     <div class="container">
@@ -2856,7 +3109,120 @@
             const successScroll = document.querySelector('.success-scroll');
             if (successScroll) successScroll.scrollTop = 0;
             showScreen('phoneScreen');
+            resetIdleTimer();
         }
+
+        // ========== ATTRACT / IDLE SCREEN LOGIC ==========
+        const IDLE_TIMEOUT = 300000; // 5 minutes
+        let idleTimer = null;
+        let attractActive = false;
+        let proBubbleTimer = null;
+
+        const attractScreen = document.getElementById('attractScreen');
+        const b1 = document.getElementById('attractBubble1');
+        const b2 = document.getElementById('attractBubble2');
+        const b3 = document.getElementById('attractBubble3');
+
+        // Generate small decorative bubbles on first show
+        let decoBubblesCreated = false;
+        function createDecoBubbles() {
+            if (decoBubblesCreated) return;
+            decoBubblesCreated = true;
+            const sizes = [30, 45, 22, 55, 38, 28, 50, 35, 42, 25];
+            const positions = [
+                [10, 20], [80, 15], [25, 75], [70, 60], [45, 85],
+                [15, 50], [85, 40], [55, 25], [35, 45], [90, 80]
+            ];
+            sizes.forEach((s, i) => {
+                const d = document.createElement('div');
+                d.className = 'attract-deco-bubble';
+                d.style.width = s + 'px';
+                d.style.height = s + 'px';
+                d.style.left = positions[i][0] + '%';
+                d.style.top = positions[i][1] + '%';
+                d.style.animationDuration = (6 + i * 1.3) + 's';
+                d.style.animationDelay = (i * 0.7) + 's';
+                attractScreen.insertBefore(d, attractScreen.firstChild);
+            });
+        }
+
+        function resetIdleTimer() {
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(showAttractScreen, IDLE_TIMEOUT);
+        }
+
+        function showAttractScreen() {
+            const phoneScreen = document.getElementById('phoneScreen');
+            if (!phoneScreen.classList.contains('active')) return;
+            attractActive = true;
+            createDecoBubbles();
+            attractScreen.classList.add('visible');
+            scheduleProBubble();
+        }
+
+        function hideAttractScreen() {
+            attractActive = false;
+            attractScreen.classList.remove('visible');
+            // Clean up bubble 3
+            clearTimeout(proBubbleTimer);
+            b3.classList.remove('incoming', 'floating3');
+            b3.style.transition = 'none';
+            setTimeout(() => { b3.style.transition = ''; }, 50);
+            resetIdleTimer();
+        }
+
+        function scheduleProBubble() {
+            proBubbleTimer = setTimeout(triggerProBubble, 20000);
+        }
+
+        function triggerProBubble() {
+            if (!attractActive) return;
+            // Slide in
+            b3.classList.add('incoming');
+
+            // Jolt b1 and b2 when b3 arrives
+            proBubbleTimer = setTimeout(() => {
+                b1.classList.add('jolted1');
+                b2.classList.add('jolted2');
+                // Start float on b3
+                setTimeout(() => { b3.classList.add('floating3'); }, 100);
+                // Remove jolt classes and re-trigger float
+                setTimeout(() => {
+                    b1.classList.remove('jolted1');
+                    b2.classList.remove('jolted2');
+                    // Force float to resume by toggling animation
+                    b1.style.animation = 'none';
+                    b2.style.animation = 'none';
+                    setTimeout(() => {
+                        b1.style.animation = '';
+                        b2.style.animation = '';
+                    }, 50);
+                }, 550);
+            }, 1200);
+
+            // Slide back out after ~9s visible
+            proBubbleTimer = setTimeout(() => {
+                b3.classList.remove('incoming', 'floating3');
+                // Schedule next entry after 10.5s (slide-out takes ~1.2s)
+                proBubbleTimer = setTimeout(() => {
+                    if (attractActive) scheduleProBubble();
+                }, 10500);
+            }, 10300);
+        }
+
+        // Event listeners to reset idle timer or dismiss attract screen
+        ['touchstart', 'click', 'keypress', 'mousemove'].forEach(evt => {
+            document.addEventListener(evt, () => {
+                if (attractActive) {
+                    hideAttractScreen();
+                } else {
+                    resetIdleTimer();
+                }
+            }, { passive: true });
+        });
+
+        // Start idle timer on page load
+        resetIdleTimer();
 
         // Allow Enter key to submit
         document.getElementById('phoneInput').addEventListener('keypress', (e) => {
