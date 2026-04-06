@@ -829,6 +829,88 @@
             color: #4169E1;
             font-size: 16px;
         }
+
+        /* Referrals modal */
+        .referrals-modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .referrals-modal-backdrop.active { display: flex; }
+        .referrals-modal {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+            padding: 32px 28px 24px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .referrals-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .referrals-modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+        .referrals-modal-close {
+            background: none;
+            border: none;
+            font-size: 22px;
+            color: #888;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0 4px;
+        }
+        .referrals-modal-close:hover { color: #333; }
+        .referrals-modal-list {
+            overflow-y: auto;
+            flex: 1;
+        }
+        .referrals-modal-list table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .referrals-modal-list th {
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: #888;
+            padding: 0 8px 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .referrals-modal-list td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #f3f3f3;
+            color: #333;
+        }
+        .referrals-modal-list tr:last-child td { border-bottom: none; }
+        .referrals-modal-empty {
+            text-align: center;
+            color: #aaa;
+            padding: 32px 0;
+            font-size: 14px;
+        }
+        .referrer-link {
+            color: #4169E1;
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        .referrer-link:hover { color: #2a4bbf; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
@@ -1392,7 +1474,7 @@
                     const medals = ['🥇','🥈','🥉'];
                     referrersTbody.innerHTML = referrersData.referrers.map((r, i) => `<tr>
                         <td class="top-rank-num">${medals[i] || (i + 1)}</td>
-                        <td><strong>${r.name}</strong></td>
+                        <td><strong><span class="referrer-link" onclick="showReferrals('${r.name.replace(/'/g, "\\'")}')">${r.name}</span></strong></td>
                         <td style="color:#4169E1;font-weight:700;">${r.referral_count}</td>
                     </tr>`).join('');
                 }
@@ -2096,6 +2178,64 @@
             });
         }
 
+        // Referrals modal
+        async function showReferrals(name) {
+            document.getElementById('referralsModalTitle').textContent = `Referred by ${name}`;
+            document.getElementById('referralsModalBody').innerHTML = '<tr><td colspan="3" class="referrals-modal-empty">Loading...</td></tr>';
+            document.getElementById('referralsModal').classList.add('active');
+
+            try {
+                const res = await fetch(`${API_URL}/analytics/referrals-by/${encodeURIComponent(name)}`);
+                const data = await res.json();
+                if (!data.referrals || data.referrals.length === 0) {
+                    document.getElementById('referralsModalBody').innerHTML =
+                        '<tr><td colspan="3" class="referrals-modal-empty">No referrals found.</td></tr>';
+                } else {
+                    document.getElementById('referralsModalBody').innerHTML = data.referrals.map(r => {
+                        const joined = new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        const phone = r.phone_number.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+                        return `<tr>
+                            <td><strong>${r.first_name} ${r.last_name}</strong></td>
+                            <td>${phone}</td>
+                            <td>${joined}</td>
+                        </tr>`;
+                    }).join('');
+                }
+            } catch (e) {
+                document.getElementById('referralsModalBody').innerHTML =
+                    '<tr><td colspan="3" class="referrals-modal-empty">Failed to load referrals.</td></tr>';
+            }
+        }
+
+        document.getElementById('referralsModalBackdrop').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('active');
+        });
+        document.getElementById('referralsModalCloseBtn').addEventListener('click', () => {
+            document.getElementById('referralsModal').parentElement.classList.remove('active');
+        });
+
     </script>
+
+    <!-- Referrals Modal -->
+    <div id="referralsModalBackdrop" class="referrals-modal-backdrop">
+        <div id="referralsModal" class="referrals-modal">
+            <div class="referrals-modal-header">
+                <div id="referralsModalTitle" class="referrals-modal-title"></div>
+                <button id="referralsModalCloseBtn" class="referrals-modal-close">&times;</button>
+            </div>
+            <div class="referrals-modal-list">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody id="referralsModalBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

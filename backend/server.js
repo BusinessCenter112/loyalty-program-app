@@ -887,6 +887,24 @@ app.get('/api/analytics/top-referrers', async (req, res) => {
     }
 });
 
+// Analytics: Customers referred by a specific person
+app.get('/api/analytics/referrals-by/:name', async (req, res) => {
+    try {
+        const name = req.params.name.trim();
+        const result = await pool.query(
+            `SELECT first_name, last_name, phone_number, created_at, total_dropoffs
+             FROM customers
+             WHERE LOWER(TRIM(referred_by)) = LOWER($1)
+             ORDER BY created_at DESC`,
+            [name]
+        );
+        res.json({ referrals: result.rows });
+    } catch (error) {
+        console.error('Referrals by name error:', error);
+        res.status(500).json({ error: 'Failed to fetch referrals', details: error.message });
+    }
+});
+
 // Initialize database and start server
 initializeDatabase().then(() => {
     app.listen(PORT, () => {
