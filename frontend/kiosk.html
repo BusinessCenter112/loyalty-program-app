@@ -1624,25 +1624,16 @@
             opacity: 0.8;
         }
 
-        /* Bubble 1 - upper left area */
-        #attractBubble1 {
-            left: 28%;
-            top: 32%;
-            transform: translate(-50%, -50%);
-            animation: floatB1 6s ease-in-out infinite;
+        /* Bubble 1 & 2 positions set by JS physics */
+        #attractBubble1, #attractBubble2 {
+            left: 0; top: 0;
         }
-        /* Bubble 2 - lower right area */
-        #attractBubble2 {
-            left: 65%;
-            top: 52%;
-            transform: translate(-50%, -50%);
-            animation: floatB2 7s ease-in-out infinite;
-        }
-        /* Bubble 3 - promo bubble, starts off-screen */
+        /* Bubble 3 - promo bubble, slide transition only */
         #attractBubble3 {
             left: 46%;
             top: 70%;
             transform: translate(-50%, -50%) translate(200vw, 150vh);
+            transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
         }
         #attractBubble3.incoming {
             transform: translate(-50%, -50%) translate(0, 0);
@@ -1650,47 +1641,17 @@
         #attractBubble3.floating3 {
             animation: floatB3 7s ease-in-out infinite;
         }
-
-        @keyframes floatB1 {
-            0%,100% { transform: translate(-50%, -50%) translateY(0px) translateX(0px) rotate(-2deg); }
-            25%     { transform: translate(-50%, -50%) translateY(-30px) translateX(12px) rotate(3deg); }
-            50%     { transform: translate(-50%, -50%) translateY(-10px) translateX(-14px) rotate(-1deg); }
-            75%     { transform: translate(-50%, -50%) translateY(20px) translateX(8px) rotate(2deg); }
-        }
-        @keyframes floatB2 {
-            0%,100% { transform: translate(-50%, -50%) translateY(0px) translateX(0px) rotate(2deg); }
-            30%     { transform: translate(-50%, -50%) translateY(-24px) translateX(-10px) rotate(-2deg); }
-            60%     { transform: translate(-50%, -50%) translateY(18px) translateX(14px) rotate(3deg); }
-            80%     { transform: translate(-50%, -50%) translateY(-8px) translateX(-6px) rotate(-1deg); }
-        }
         @keyframes floatB3 {
             0%,100% { transform: translate(-50%, -50%) translateY(0px) rotate(1deg); }
             40%     { transform: translate(-50%, -50%) translateY(-20px) rotate(-3deg); }
             70%     { transform: translate(-50%, -50%) translateY(14px) rotate(2deg); }
         }
 
-        /* Jolt animations */
-        @keyframes jolt1 {
-            0%   { transform: translate(-50%, -50%) translateY(0) rotate(-2deg); }
-            25%  { transform: translate(calc(-50% - 28px), calc(-50% - 22px)) rotate(-8deg); }
-            60%  { transform: translate(calc(-50% + 8px), calc(-50% + 6px)) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) translateY(0) rotate(-2deg); }
-        }
-        @keyframes jolt2 {
-            0%   { transform: translate(-50%, -50%) translateY(0) rotate(2deg); }
-            25%  { transform: translate(calc(-50% + 28px), calc(-50% - 18px)) rotate(8deg); }
-            60%  { transform: translate(calc(-50% - 8px), calc(-50% + 5px)) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) translateY(0) rotate(2deg); }
-        }
-        #attractBubble1.jolted1 {
-            animation: jolt1 0.5s ease-out !important;
-        }
-        #attractBubble2.jolted2 {
-            animation: jolt2 0.5s ease-out !important;
-        }
+        /* Jolt — JS handles b1/b2 jolts via velocity impulse, no CSS needed */
 
         .attract-bubble {
             z-index: 2;
+            transition: none;
         }
 
         /* Tap to continue hint */
@@ -3129,11 +3090,88 @@
         let idleTimer = null;
         let attractActive = false;
         let proBubbleTimer = null;
+        let bubbleAnimFrame = null;
 
         const attractScreen = document.getElementById('attractScreen');
         const b1 = document.getElementById('attractBubble1');
         const b2 = document.getElementById('attractBubble2');
         const b3 = document.getElementById('attractBubble3');
+
+        // Physics state for b1 and b2
+        const BUBBLE_R = 145; // half of 290px
+        const bubbles = [
+            { el: b1, x: 0, y: 0, vx: 1.4, vy: 0.9, rot: 0, rotV: 0.15 },
+            { el: b2, x: 0, y: 0, vx: -1.1, vy: 1.3, rot: 15, rotV: -0.12 }
+        ];
+
+        function initBubblePositions() {
+            const W = window.innerWidth;
+            const H = window.innerHeight;
+            // Place them in opposite quadrants, away from center
+            bubbles[0].x = W * 0.22;
+            bubbles[0].y = H * 0.22;
+            bubbles[1].x = W * 0.75;
+            bubbles[1].y = H * 0.65;
+            bubbles.forEach(applyBubbleTransform);
+        }
+
+        function applyBubbleTransform(b) {
+            b.el.style.left = b.x + 'px';
+            b.el.style.top  = b.y + 'px';
+            b.el.style.transform = 'translate(-50%, -50%) rotate(' + b.rot.toFixed(1) + 'deg)';
+        }
+
+        function stepBubbles() {
+            const W = window.innerWidth;
+            const H = window.innerHeight;
+            const cx = W / 2;
+            const cy = H / 2;
+            const repelR = BUBBLE_R + 140; // stay this far from center text
+
+            bubbles.forEach(b => {
+                // Soft repulsion from center (where tap hint lives)
+                const dx = b.x - cx;
+                const dy = b.y - cy;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < repelR && dist > 0) {
+                    const force = ((repelR - dist) / repelR) * 0.25;
+                    b.vx += (dx / dist) * force;
+                    b.vy += (dy / dist) * force;
+                }
+
+                // Cap speed
+                const spd = Math.sqrt(b.vx * b.vx + b.vy * b.vy);
+                if (spd > 2.0) { b.vx = b.vx / spd * 2.0; b.vy = b.vy / spd * 2.0; }
+                if (spd < 0.6) { b.vx *= 1.05; b.vy *= 1.05; }
+
+                b.x += b.vx;
+                b.y += b.vy;
+
+                // Bounce off edges
+                if (b.x - BUBBLE_R < 0)  { b.x = BUBBLE_R; b.vx = Math.abs(b.vx); }
+                if (b.x + BUBBLE_R > W)  { b.x = W - BUBBLE_R; b.vx = -Math.abs(b.vx); }
+                if (b.y - BUBBLE_R < 0)  { b.y = BUBBLE_R; b.vy = Math.abs(b.vy); }
+                if (b.y + BUBBLE_R > H)  { b.y = H - BUBBLE_R; b.vy = -Math.abs(b.vy); }
+
+                // Gentle rotation drift
+                b.rot += b.rotV;
+                if (Math.abs(b.rot) > 18) b.rotV *= -1;
+
+                applyBubbleTransform(b);
+            });
+
+            bubbleAnimFrame = requestAnimationFrame(stepBubbles);
+        }
+
+        function startBubblePhysics() {
+            initBubblePositions();
+            if (bubbleAnimFrame) cancelAnimationFrame(bubbleAnimFrame);
+            stepBubbles();
+        }
+
+        function stopBubblePhysics() {
+            if (bubbleAnimFrame) { cancelAnimationFrame(bubbleAnimFrame); bubbleAnimFrame = null; }
+        }
 
         // Generate small decorative bubbles on first show
         let decoBubblesCreated = false;
@@ -3169,12 +3207,14 @@
             attractActive = true;
             createDecoBubbles();
             attractScreen.classList.add('visible');
+            startBubblePhysics();
             scheduleProBubble();
         }
 
         function hideAttractScreen() {
             attractActive = false;
             attractScreen.classList.remove('visible');
+            stopBubblePhysics();
             // Clean up bubble 3
             clearTimeout(proBubbleTimer);
             b3.classList.remove('incoming', 'floating3');
@@ -3189,33 +3229,18 @@
 
         function triggerProBubble() {
             if (!attractActive) return;
-            // Slide in
             b3.classList.add('incoming');
 
-            // Jolt b1 and b2 when b3 arrives
+            // Apply velocity impulse to b1 and b2 when b3 arrives
             proBubbleTimer = setTimeout(() => {
-                b1.classList.add('jolted1');
-                b2.classList.add('jolted2');
-                // Start float on b3
+                bubbles[0].vx -= 1.2; bubbles[0].vy -= 0.8;
+                bubbles[1].vx += 1.2; bubbles[1].vy -= 0.8;
                 setTimeout(() => { b3.classList.add('floating3'); }, 100);
-                // Remove jolt classes and re-trigger float
-                setTimeout(() => {
-                    b1.classList.remove('jolted1');
-                    b2.classList.remove('jolted2');
-                    // Force float to resume by toggling animation
-                    b1.style.animation = 'none';
-                    b2.style.animation = 'none';
-                    setTimeout(() => {
-                        b1.style.animation = '';
-                        b2.style.animation = '';
-                    }, 50);
-                }, 550);
             }, 1200);
 
             // Slide back out after ~9s visible
             proBubbleTimer = setTimeout(() => {
                 b3.classList.remove('incoming', 'floating3');
-                // Schedule next entry after 10.5s (slide-out takes ~1.2s)
                 proBubbleTimer = setTimeout(() => {
                     if (attractActive) scheduleProBubble();
                 }, 10500);
