@@ -1628,23 +1628,9 @@
         #attractBubble1, #attractBubble2 {
             left: 0; top: 0;
         }
-        /* Bubble 3 - promo bubble, slide transition only */
+        /* Bubble 3 - position set by JS physics */
         #attractBubble3 {
-            left: 46%;
-            top: 70%;
-            transform: translate(-50%, -50%) translate(200vw, 150vh);
-            transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-        #attractBubble3.incoming {
-            transform: translate(-50%, -50%) translate(0, 0);
-        }
-        #attractBubble3.floating3 {
-            animation: floatB3 7s ease-in-out infinite;
-        }
-        @keyframes floatB3 {
-            0%,100% { transform: translate(-50%, -50%) translateY(0px) rotate(1deg); }
-            40%     { transform: translate(-50%, -50%) translateY(-20px) rotate(-3deg); }
-            70%     { transform: translate(-50%, -50%) translateY(14px) rotate(2deg); }
+            left: 0; top: 0;
         }
 
         /* Jolt — JS handles b1/b2 jolts via velocity impulse, no CSS needed */
@@ -3089,7 +3075,6 @@
         const IDLE_TIMEOUT = 10000; // TESTING: 10 seconds (change back to 300000 for production)
         let idleTimer = null;
         let attractActive = false;
-        let proBubbleTimer = null;
         let bubbleAnimFrame = null;
 
         const attractScreen = document.getElementById('attractScreen');
@@ -3097,21 +3082,19 @@
         const b2 = document.getElementById('attractBubble2');
         const b3 = document.getElementById('attractBubble3');
 
-        // Physics state for b1 and b2
         const BUBBLE_R = 145; // half of 290px
         const bubbles = [
-            { el: b1, x: 0, y: 0, vx: 1.4, vy: 0.9, rot: 0, rotV: 0.15 },
-            { el: b2, x: 0, y: 0, vx: -1.1, vy: 1.3, rot: 15, rotV: -0.12 }
+            { el: b1, x: 0, y: 0, vx: 1.4,  vy: 0.9,  rot: 0,  rotV: 0.14 },
+            { el: b2, x: 0, y: 0, vx: -1.1, vy: 1.3,  rot: 15, rotV: -0.11 },
+            { el: b3, x: 0, y: 0, vx: 0.8,  vy: -1.2, rot: -8, rotV: 0.13  }
         ];
 
         function initBubblePositions() {
             const W = window.innerWidth;
             const H = window.innerHeight;
-            // Place them in opposite quadrants, away from center
-            bubbles[0].x = W * 0.22;
-            bubbles[0].y = H * 0.22;
-            bubbles[1].x = W * 0.75;
-            bubbles[1].y = H * 0.65;
+            bubbles[0].x = W * 0.20; bubbles[0].y = H * 0.20;
+            bubbles[1].x = W * 0.78; bubbles[1].y = H * 0.65;
+            bubbles[2].x = W * 0.50; bubbles[2].y = H * 0.82;
             bubbles.forEach(applyBubbleTransform);
         }
 
@@ -3121,45 +3104,68 @@
             b.el.style.transform = 'translate(-50%, -50%) rotate(' + b.rot.toFixed(1) + 'deg)';
         }
 
+        function resolveBubbleCollisions() {
+            for (let i = 0; i < bubbles.length; i++) {
+                for (let j = i + 1; j < bubbles.length; j++) {
+                    const a = bubbles[i], b = bubbles[j];
+                    const dx = b.x - a.x, dy = b.y - a.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const minDist = BUBBLE_R * 2;
+                    if (dist < minDist && dist > 0) {
+                        // Separate overlapping bubbles
+                        const nx = dx / dist, ny = dy / dist;
+                        const overlap = (minDist - dist) / 2;
+                        a.x -= nx * overlap; a.y -= ny * overlap;
+                        b.x += nx * overlap; b.y += ny * overlap;
+                        // Elastic collision: swap velocity components along collision normal
+                        const dvx = b.vx - a.vx, dvy = b.vy - a.vy;
+                        const dot = dvx * nx + dvy * ny;
+                        if (dot < 0) {
+                            a.vx += dot * nx; a.vy += dot * ny;
+                            b.vx -= dot * nx; b.vy -= dot * ny;
+                        }
+                    }
+                }
+            }
+        }
+
         function stepBubbles() {
             const W = window.innerWidth;
             const H = window.innerHeight;
-            const cx = W / 2;
-            const cy = H / 2;
-            const repelR = BUBBLE_R + 140; // stay this far from center text
+            const cx = W / 2, cy = H / 2;
+            const repelR = BUBBLE_R + 130;
 
             bubbles.forEach(b => {
-                // Soft repulsion from center (where tap hint lives)
-                const dx = b.x - cx;
-                const dy = b.y - cy;
+                // Soft repulsion from center tap hint
+                const dx = b.x - cx, dy = b.y - cy;
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 if (dist < repelR && dist > 0) {
-                    const force = ((repelR - dist) / repelR) * 0.25;
+                    const force = ((repelR - dist) / repelR) * 0.22;
                     b.vx += (dx / dist) * force;
                     b.vy += (dy / dist) * force;
                 }
 
-                // Cap speed
+                // Speed limits
                 const spd = Math.sqrt(b.vx * b.vx + b.vy * b.vy);
                 if (spd > 2.0) { b.vx = b.vx / spd * 2.0; b.vy = b.vy / spd * 2.0; }
-                if (spd < 0.6) { b.vx *= 1.05; b.vy *= 1.05; }
+                if (spd < 0.5) { b.vx *= 1.06; b.vy *= 1.06; }
 
-                b.x += b.vx;
-                b.y += b.vy;
+                b.x += b.vx; b.y += b.vy;
 
                 // Bounce off edges
-                if (b.x - BUBBLE_R < 0)  { b.x = BUBBLE_R; b.vx = Math.abs(b.vx); }
+                if (b.x - BUBBLE_R < 0)  { b.x = BUBBLE_R;     b.vx =  Math.abs(b.vx); }
                 if (b.x + BUBBLE_R > W)  { b.x = W - BUBBLE_R; b.vx = -Math.abs(b.vx); }
-                if (b.y - BUBBLE_R < 0)  { b.y = BUBBLE_R; b.vy = Math.abs(b.vy); }
+                if (b.y - BUBBLE_R < 0)  { b.y = BUBBLE_R;     b.vy =  Math.abs(b.vy); }
                 if (b.y + BUBBLE_R > H)  { b.y = H - BUBBLE_R; b.vy = -Math.abs(b.vy); }
 
-                // Gentle rotation drift
+                // Rotation drift
                 b.rot += b.rotV;
                 if (Math.abs(b.rot) > 18) b.rotV *= -1;
 
                 applyBubbleTransform(b);
             });
 
+            resolveBubbleCollisions();
             bubbleAnimFrame = requestAnimationFrame(stepBubbles);
         }
 
@@ -3208,43 +3214,13 @@
             createDecoBubbles();
             attractScreen.classList.add('visible');
             startBubblePhysics();
-            scheduleProBubble();
         }
 
         function hideAttractScreen() {
             attractActive = false;
             attractScreen.classList.remove('visible');
             stopBubblePhysics();
-            // Clean up bubble 3
-            clearTimeout(proBubbleTimer);
-            b3.classList.remove('incoming', 'floating3');
-            b3.style.transition = 'none';
-            setTimeout(() => { b3.style.transition = ''; }, 50);
             resetIdleTimer();
-        }
-
-        function scheduleProBubble() {
-            proBubbleTimer = setTimeout(triggerProBubble, 20000);
-        }
-
-        function triggerProBubble() {
-            if (!attractActive) return;
-            b3.classList.add('incoming');
-
-            // Apply velocity impulse to b1 and b2 when b3 arrives
-            proBubbleTimer = setTimeout(() => {
-                bubbles[0].vx -= 1.2; bubbles[0].vy -= 0.8;
-                bubbles[1].vx += 1.2; bubbles[1].vy -= 0.8;
-                setTimeout(() => { b3.classList.add('floating3'); }, 100);
-            }, 1200);
-
-            // Slide back out after ~9s visible
-            proBubbleTimer = setTimeout(() => {
-                b3.classList.remove('incoming', 'floating3');
-                proBubbleTimer = setTimeout(() => {
-                    if (attractActive) scheduleProBubble();
-                }, 10500);
-            }, 10300);
         }
 
         // Event listeners to reset idle timer or dismiss attract screen
