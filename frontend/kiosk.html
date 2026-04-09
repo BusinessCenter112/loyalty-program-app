@@ -1863,118 +1863,119 @@
             <div id="registerError" class="error-message" style="display: none;"></div>
         </div>
 
-        <!-- Success Screen - Full Screen Layout -->
-        <div id="successScreen" class="screen">
-            <a href="https://main-street-rewards.vercel.app/" target="_blank" rel="noopener" class="success-logo-corner">
-                <svg width="44" height="44" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Main Street Rewards logo">
-                    <circle cx="19" cy="19" r="17.5" stroke="#FFB830" stroke-width="1.5"></circle>
-                    <circle cx="19" cy="19" r="14" fill="#FFB830"></circle>
-                    <path d="M11 26V13L19 21L27 13V26" stroke="#0D1B2A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                </svg>
-            </a>
-            <div class="success-scroll">
-                <div class="success-header">
-                    <p id="successWelcome" style="font-size: 18px; color: rgba(255,255,255,0.55); margin-bottom: 6px; font-weight: 500;"></p>
-                    <h1>Drop-off Logged!</h1>
-                    <div id="successRank" class="rank-badge no-rank" style="display: none;">
-                        <span class="rank-icon"></span>
-                        <span class="rank-name"></span>
-                    </div>
-                    <div class="success-stats">
-                        <div class="success-stat">
-                            <div class="success-stat-number" id="successDropoffs">0</div>
-                            <div class="success-stat-label">Total Drop-offs</div>
-                        </div>
-                        <div class="success-stat">
-                            <div class="success-stat-number" id="successRewards">0</div>
-                            <div class="success-stat-label">Rewards Available</div>
-                        </div>
-                    </div>
-                    <div class="success-progress-bar-container" id="successProgressBarContainer">
-                        <div class="success-progress-bar-label">
-                            <span id="successProgressCount">0 / 10</span>
-                            <span>Next Reward</span>
-                        </div>
-                        <div class="success-progress-bar-track">
-                            <div class="success-progress-bar-fill" id="successProgressBarFill"></div>
-                            <div class="success-progress-bar-dots" id="successProgressBarDots"></div>
-                        </div>
-                    </div>
-                    <div class="success-progress-text" id="successProgressText"></div>
-                    <div id="rewardBadge" style="display: none;">
-                        <div class="reward-badge">🎉 You earned a reward!</div>
-                    </div>
-                    <div id="redeemCallout" style="display: none;">
-                        <div class="redeem-callout">
-                            <div class="redeem-callout-title" id="redeemCalloutTitle"></div>
-                            <div class="redeem-callout-body">Let the staff know at the counter and they'll apply your reward to your next transaction.</div>
-                        </div>
-                    </div>
-                    <div id="tierProgressBanner" class="tier-progress-banner" style="display: none;"></div>
-                    <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                        <button class="success-done-btn" id="doneBtn">Done</button>
-                        <a href="leaderboard.html" class="success-done-btn" style="text-decoration: none; display: inline-block; background: transparent; color: white; border: 2px solid white; box-shadow: none;">🏆 View Leaderboard</a>
-                    </div>
-                    <p id="successCountdown" style="margin-top: 14px; font-size: 13px; color: rgba(255,255,255,0.3); letter-spacing: 0.3px;"></p>
-                </div>
-
-                <!-- Inline Tier Cards -->
-                <div class="inline-tiers-section">
-                    <div class="inline-tiers-title">🏆 Rewards Tiers</div>
-                    <div class="inline-tiers-subtitle">Earn rewards as you drop off more packages!</div>
-                    <div class="inline-tiers-container">
-                        <div class="inline-tier-card bronze" id="inlineBronzeTier">
-                            <div class="inline-tier-icon">🥉</div>
-                            <div class="inline-tier-name">Bronze</div>
-                            <div class="inline-tier-points">10-24 drop-offs</div>
-                            <div class="inline-tier-rewards">
-                                <ul>
-                                    <li>10% Off Shipping</li>
-                                    <li>5 Free B/W Copies</li>
-                                    <li>10% Off Fax/Shred</li>
-                                    <li>10% Off Notary*</li>
-                                </ul>
-                            </div>
-                            <div class="inline-tier-status" id="inlineBronzeStatus">Locked</div>
-                        </div>
-                        <div class="inline-tier-card silver" id="inlineSilverTier">
-                            <div class="inline-tier-icon">🥈</div>
-                            <div class="inline-tier-name">Silver</div>
-                            <div class="inline-tier-points">25-49 drop-offs</div>
-                            <div class="inline-tier-rewards">
-                                <ul>
-                                    <li>10% Off Shipping</li>
-                                    <li>10 Free Copies</li>
-                                    <li>10% Off Fax/Shred</li>
-                                    <li>15% Off Notary*</li>
-                                </ul>
-                            </div>
-                            <div class="inline-tier-status" id="inlineSilverStatus">Locked</div>
-                        </div>
-                        <div class="inline-tier-card gold" id="inlineGoldTier">
-                            <div class="inline-tier-icon">🥇</div>
-                            <div class="inline-tier-name">Gold</div>
-                            <div class="inline-tier-points">50+ drop-offs</div>
-                            <div class="inline-tier-rewards">
-                                <ul>
-                                    <li>10% Off Shipping</li>
-                                    <li>20 Free B/W Copies</li>
-                                    <li>Free Notary*</li>
-                                    <li>Free Packing + Box</li>
-                                </ul>
-                            </div>
-                            <div class="inline-tier-status" id="inlineGoldStatus">Locked</div>
-                        </div>
-                    </div>
-                    <div class="inline-tier-indicator" id="inlineTierIndicator"></div>
-                    <div class="inline-tier-note">*Notary must be scheduled in advance. Choose 1 reward per tier.</div>
-                </div>
-
-
-            </div>
-        </div>
-
         <p style="text-align:center; color:rgba(255,184,48,0.9); font-size:14px; font-weight:700; letter-spacing:0.06em; margin:18px 0 6px; text-shadow: 0 1px 6px rgba(0,0,0,0.3);">Powered by Main Street Rewards</p>
+    </div>
+
+    <!-- Success Screen - moved outside .container so position:fixed works correctly on iOS
+         (backdrop-filter on .container breaks fixed positioning for child elements) -->
+    <div id="successScreen" class="screen">
+        <a href="https://main-street-rewards.vercel.app/" target="_blank" rel="noopener" class="success-logo-corner">
+            <svg width="44" height="44" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Main Street Rewards logo">
+                <circle cx="19" cy="19" r="17.5" stroke="#FFB830" stroke-width="1.5"></circle>
+                <circle cx="19" cy="19" r="14" fill="#FFB830"></circle>
+                <path d="M11 26V13L19 21L27 13V26" stroke="#0D1B2A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+        </a>
+        <div class="success-scroll">
+            <div class="success-header">
+                <p id="successWelcome" style="font-size: 18px; color: rgba(255,255,255,0.55); margin-bottom: 6px; font-weight: 500;"></p>
+                <h1>Drop-off Logged!</h1>
+                <div id="successRank" class="rank-badge no-rank" style="display: none;">
+                    <span class="rank-icon"></span>
+                    <span class="rank-name"></span>
+                </div>
+                <div class="success-stats">
+                    <div class="success-stat">
+                        <div class="success-stat-number" id="successDropoffs">0</div>
+                        <div class="success-stat-label">Total Drop-offs</div>
+                    </div>
+                    <div class="success-stat">
+                        <div class="success-stat-number" id="successRewards">0</div>
+                        <div class="success-stat-label">Rewards Available</div>
+                    </div>
+                </div>
+                <div class="success-progress-bar-container" id="successProgressBarContainer">
+                    <div class="success-progress-bar-label">
+                        <span id="successProgressCount">0 / 10</span>
+                        <span>Next Reward</span>
+                    </div>
+                    <div class="success-progress-bar-track">
+                        <div class="success-progress-bar-fill" id="successProgressBarFill"></div>
+                        <div class="success-progress-bar-dots" id="successProgressBarDots"></div>
+                    </div>
+                </div>
+                <div class="success-progress-text" id="successProgressText"></div>
+                <div id="rewardBadge" style="display: none;">
+                    <div class="reward-badge">🎉 You earned a reward!</div>
+                </div>
+                <div id="redeemCallout" style="display: none;">
+                    <div class="redeem-callout">
+                        <div class="redeem-callout-title" id="redeemCalloutTitle"></div>
+                        <div class="redeem-callout-body">Let the staff know at the counter and they'll apply your reward to your next transaction.</div>
+                    </div>
+                </div>
+                <div id="tierProgressBanner" class="tier-progress-banner" style="display: none;"></div>
+                <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                    <button class="success-done-btn" id="doneBtn">Done</button>
+                    <a href="leaderboard.html" class="success-done-btn" style="text-decoration: none; display: inline-block; background: transparent; color: white; border: 2px solid white; box-shadow: none;">🏆 View Leaderboard</a>
+                </div>
+                <p id="successCountdown" style="margin-top: 14px; font-size: 13px; color: rgba(255,255,255,0.3); letter-spacing: 0.3px;"></p>
+            </div>
+
+            <!-- Inline Tier Cards -->
+            <div class="inline-tiers-section">
+                <div class="inline-tiers-title">🏆 Rewards Tiers</div>
+                <div class="inline-tiers-subtitle">Earn rewards as you drop off more packages!</div>
+                <div class="inline-tiers-container">
+                    <div class="inline-tier-card bronze" id="inlineBronzeTier">
+                        <div class="inline-tier-icon">🥉</div>
+                        <div class="inline-tier-name">Bronze</div>
+                        <div class="inline-tier-points">10-24 drop-offs</div>
+                        <div class="inline-tier-rewards">
+                            <ul>
+                                <li>10% Off Shipping</li>
+                                <li>5 Free B/W Copies</li>
+                                <li>10% Off Fax/Shred</li>
+                                <li>10% Off Notary*</li>
+                            </ul>
+                        </div>
+                        <div class="inline-tier-status" id="inlineBronzeStatus">Locked</div>
+                    </div>
+                    <div class="inline-tier-card silver" id="inlineSilverTier">
+                        <div class="inline-tier-icon">🥈</div>
+                        <div class="inline-tier-name">Silver</div>
+                        <div class="inline-tier-points">25-49 drop-offs</div>
+                        <div class="inline-tier-rewards">
+                            <ul>
+                                <li>10% Off Shipping</li>
+                                <li>10 Free Copies</li>
+                                <li>10% Off Fax/Shred</li>
+                                <li>15% Off Notary*</li>
+                            </ul>
+                        </div>
+                        <div class="inline-tier-status" id="inlineSilverStatus">Locked</div>
+                    </div>
+                    <div class="inline-tier-card gold" id="inlineGoldTier">
+                        <div class="inline-tier-icon">🥇</div>
+                        <div class="inline-tier-name">Gold</div>
+                        <div class="inline-tier-points">50+ drop-offs</div>
+                        <div class="inline-tier-rewards">
+                            <ul>
+                                <li>10% Off Shipping</li>
+                                <li>20 Free B/W Copies</li>
+                                <li>Free Notary*</li>
+                                <li>Free Packing + Box</li>
+                            </ul>
+                        </div>
+                        <div class="inline-tier-status" id="inlineGoldStatus">Locked</div>
+                    </div>
+                </div>
+                <div class="inline-tier-indicator" id="inlineTierIndicator"></div>
+                <div class="inline-tier-note">*Notary must be scheduled in advance. Choose 1 reward per tier.</div>
+            </div>
+
+
+        </div>
     </div>
 
     <script>
