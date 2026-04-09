@@ -3223,13 +3223,13 @@
         }
 
         // Event listeners to reset idle timer or dismiss attract screen
+        // resetIdleTimer() calls disabled 2026-04-09 — battery drain fix
         ['touchstart', 'click', 'keypress', 'mousemove'].forEach(evt => {
             document.addEventListener(evt, () => {
                 if (attractActive) {
                     hideAttractScreen();
-                } else {
-                    resetIdleTimer();
                 }
+                // else { resetIdleTimer(); } — disabled
             }, { passive: true });
         });
 
