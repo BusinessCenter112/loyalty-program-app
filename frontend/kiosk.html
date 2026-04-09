@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Rewards Club">
@@ -1996,10 +1996,9 @@
             window.scrollTo(0, 0);
             document.body.scrollTop = 0;
             document.documentElement.scrollTop = 0;
-            // Force viewport reset after keyboard closes
-            setTimeout(() => {
-                window.scrollTo(0, 0);
-            }, 100);
+            // Force viewport reset after keyboard closes (iOS sometimes leaves viewport zoomed)
+            setTimeout(() => { window.scrollTo(0, 0); }, 100);
+            setTimeout(() => { window.scrollTo(0, 0); }, 300);
 
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
