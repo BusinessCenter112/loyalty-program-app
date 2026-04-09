@@ -1820,7 +1820,7 @@
             <p class="subtitle">Enter your phone number to get started</p>
 
             <div style="width:100%;">
-                <input type="tel" id="phoneInput" placeholder="(555) 123-4567" autocomplete="tel" inputmode="numeric" pattern="[0-9]*">
+                <input type="tel" id="phoneInput" placeholder="10-digit phone number" autocomplete="tel" inputmode="numeric" pattern="[0-9]*" maxlength="10">
                 <a id="phoneSubmit" href="javascript:void(0)" onclick="doPhoneSubmit(event);">Log Drop-off</a>
             </div>
 
@@ -2110,26 +2110,11 @@
             if (countdownEl) countdownEl.textContent = '';
         }
 
-        // Live phone formatter with cursor position preserved to avoid iOS glitch
+        // Digits only while typing — iOS can't handle live value replacement without cursor glitching.
+        // Number is formatted for display on the success screen after submit.
         document.getElementById('phoneInput').addEventListener('input', function() {
-            const input = this;
-            const cursorPos = input.selectionStart;
-            const prevLen = input.value.length;
-            const digits = input.value.replace(/\D/g, '').slice(0, 10);
-            let formatted;
-            if (digits.length === 0) {
-                formatted = '';
-            } else if (digits.length <= 3) {
-                formatted = digits;
-            } else if (digits.length <= 6) {
-                formatted = `(${digits.slice(0,3)}) ${digits.slice(3)}`;
-            } else {
-                formatted = `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
-            }
-            input.value = formatted;
-            // Restore cursor, accounting for any characters added by formatting
-            const newPos = cursorPos + (formatted.length - prevLen);
-            input.setSelectionRange(newPos, newPos);
+            const digits = this.value.replace(/\D/g, '').slice(0, 10);
+            if (this.value !== digits) this.value = digits;
         });
 
         // Phone submission
@@ -3313,11 +3298,6 @@
 
         // ========== TAP TO BEGIN ==========
         const tapToBegin = document.getElementById('tapToBegin');
-        tapToBegin.addEventListener('touchend', function(e) {
-            e.preventDefault();
-            tapToBegin.classList.add('hidden');
-            document.getElementById('phoneInput').focus();
-        }, { passive: false });
         tapToBegin.addEventListener('click', function() {
             tapToBegin.classList.add('hidden');
             document.getElementById('phoneInput').focus();
