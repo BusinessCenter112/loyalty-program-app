@@ -3235,7 +3235,9 @@
         });
 
         // Start idle timer on page load
-        resetIdleTimer();
+        // DISABLED 2026-04-09 — attract screen physics loop was draining iPad battery even while plugged in
+        // To re-enable: uncomment the line below
+        // resetIdleTimer();
 
         // Allow Enter key to submit
         document.getElementById('phoneInput').addEventListener('keypress', (e) => {
