@@ -1996,7 +1996,14 @@
             window.scrollTo(0, 0);
             document.body.scrollTop = 0;
             document.documentElement.scrollTop = 0;
-            // Force viewport reset after keyboard closes (iOS sometimes leaves viewport zoomed)
+            document.body.scrollLeft = 0;
+            document.documentElement.scrollLeft = 0;
+            // Force iOS to re-read viewport meta — fixes horizontal offset after keyboard dismissal
+            const vp = document.querySelector('meta[name=viewport]');
+            const vpContent = vp.getAttribute('content');
+            vp.setAttribute('content', vpContent + ', minimum-scale=1');
+            setTimeout(() => vp.setAttribute('content', vpContent), 50);
+            // Additional scroll resets after keyboard animation completes
             setTimeout(() => { window.scrollTo(0, 0); }, 100);
             setTimeout(() => { window.scrollTo(0, 0); }, 300);
 
