@@ -1486,6 +1486,62 @@
             box-shadow: none;
         }
 
+        /* ========== TAP TO BEGIN OVERLAY ========== */
+        #tapToBegin {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: #0b1535;
+            background-image: radial-gradient(ellipse at 50% 40%, #1e3272 0%, #0b1535 65%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 600;
+            cursor: pointer;
+        }
+        #tapToBegin.hidden {
+            display: none;
+        }
+        #tapToBegin .ttb-logo {
+            font-size: 64px;
+            margin-bottom: 24px;
+        }
+        #tapToBegin .ttb-title {
+            color: white;
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: -1px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        #tapToBegin .ttb-sub {
+            color: rgba(255,255,255,0.45);
+            font-size: 15px;
+            text-align: center;
+            margin-bottom: 56px;
+        }
+        #tapToBegin .ttb-cta {
+            color: rgba(255,255,255,0.7);
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            animation: ttbPulse 2s ease-in-out infinite;
+        }
+        @keyframes ttbPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        #tapToBegin .ttb-powered {
+            position: absolute;
+            bottom: 24px;
+            color: rgba(255,184,48,0.7);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+        }
+
         /* ========== ATTRACT / IDLE SCREEN ========== */
         #attractScreen {
             position: fixed;
@@ -1737,6 +1793,15 @@
 
         <!-- Tap hint -->
         <div id="attractTapHint">Tap anywhere to continue</div>
+    </div>
+
+    <!-- Tap to Begin overlay — dismisses on tap and focuses phone input so keyboard opens in PWA mode -->
+    <div id="tapToBegin">
+        <div class="ttb-logo">📦</div>
+        <div class="ttb-title">Web 2.0 Business Center<br>Rewards Club</div>
+        <div class="ttb-sub">Track your drop-offs &amp; earn rewards</div>
+        <div class="ttb-cta">Tap anywhere to begin</div>
+        <div class="ttb-powered">Powered by Main Street Rewards</div>
     </div>
 
     <div class="container">
@@ -3076,6 +3141,8 @@
             if (successScroll) successScroll.scrollTop = 0;
             showScreen('phoneScreen');
             resetIdleTimer();
+            // Re-show tap screen so next customer tap opens keyboard correctly
+            document.getElementById('tapToBegin').classList.remove('hidden');
         }
 
         // ========== ATTRACT / IDLE SCREEN LOGIC ==========
@@ -3239,6 +3306,18 @@
                 }
                 // else { resetIdleTimer(); } — disabled
             }, { passive: true });
+        });
+
+        // ========== TAP TO BEGIN ==========
+        const tapToBegin = document.getElementById('tapToBegin');
+        tapToBegin.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            tapToBegin.classList.add('hidden');
+            document.getElementById('phoneInput').focus();
+        }, { passive: false });
+        tapToBegin.addEventListener('click', function() {
+            tapToBegin.classList.add('hidden');
+            document.getElementById('phoneInput').focus();
         });
 
         // Start idle timer on page load
