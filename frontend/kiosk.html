@@ -1820,7 +1820,7 @@
             <p class="subtitle">Enter your phone number to get started</p>
 
             <div style="width:100%;">
-                <input type="tel" id="phoneInput" placeholder="Enter 10-digit phone number" autocomplete="tel" inputmode="numeric" pattern="[0-9]*" maxlength="10">
+                <input type="tel" id="phoneInput" placeholder="(555) 123-4567" autocomplete="tel" inputmode="numeric" pattern="[0-9]*">
                 <a id="phoneSubmit" href="javascript:void(0)" onclick="doPhoneSubmit(event);">Log Drop-off</a>
             </div>
 
@@ -2110,10 +2110,26 @@
             if (countdownEl) countdownEl.textContent = '';
         }
 
-        // Strip non-digits and cap at 10 — no live formatting to avoid iOS lag/cursor glitch
+        // Live phone formatter with cursor position preserved to avoid iOS glitch
         document.getElementById('phoneInput').addEventListener('input', function() {
-            const digits = this.value.replace(/\D/g, '').slice(0, 10);
-            if (this.value !== digits) this.value = digits;
+            const input = this;
+            const cursorPos = input.selectionStart;
+            const prevLen = input.value.length;
+            const digits = input.value.replace(/\D/g, '').slice(0, 10);
+            let formatted;
+            if (digits.length === 0) {
+                formatted = '';
+            } else if (digits.length <= 3) {
+                formatted = digits;
+            } else if (digits.length <= 6) {
+                formatted = `(${digits.slice(0,3)}) ${digits.slice(3)}`;
+            } else {
+                formatted = `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
+            }
+            input.value = formatted;
+            // Restore cursor, accounting for any characters added by formatting
+            const newPos = cursorPos + (formatted.length - prevLen);
+            input.setSelectionRange(newPos, newPos);
         });
 
         // Phone submission
