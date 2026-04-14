@@ -1548,7 +1548,7 @@
                 card.innerHTML = `
                     <div class="customer-name">${customer.first_name} ${customer.last_name}${rankBadge}</div>
                     <div class="customer-email">${customer.email}</div>
-                    <div class="customer-email">${customer.phone_number}</div>
+                    <div class="customer-email">${customer.phone_number ? `(${customer.phone_number.slice(0,3)}) ${customer.phone_number.slice(3,6)}-${customer.phone_number.slice(6)}` : ''}</div>
                     ${referralInfo}
                     <div class="customer-stats">
                         <div class="stat">
