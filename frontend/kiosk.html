@@ -1826,6 +1826,13 @@
 
             <div id="phoneError" class="error-message" style="display: none;"></div>
 
+            <div class="consent-group" style="margin: 4px 0 16px;">
+                <label class="consent-label">
+                    <input type="checkbox" id="smsConsent">
+                    <span>By providing your mobile number and selecting the opt-in box, you agree to receive recurring promotional and automated text messages, including reward reminders from Web 2.0 Business Center. Message and data rates may apply. Message frequency may vary. Reply HELP for help; STOP to opt-out. Consent is not a condition for purchase. View our <a href="https://web20businesscenter.com/privacy-policy/" target="_blank" rel="noopener">privacy policy</a> and <a href="https://web20businesscenter.com/terms-and-conditions/" target="_blank" rel="noopener">terms and conditions</a>.</span>
+                </label>
+            </div>
+
             <div class="staff-link" style="display: flex; justify-content: space-between; align-items: center;">
                 <a href="leaderboard.html" style="font-weight: 600;">🏆 View Leaderboard</a>
                 <a href="staff-login.html">Staff Login</a>
@@ -1915,10 +1922,6 @@
                 <label class="consent-label">
                     <input type="checkbox" id="emailConsent">
                     <span>By providing your email address you consent to receive news and updates about our business via email. You can unsubscribe at any time.</span>
-                </label>
-                <label class="consent-label">
-                    <input type="checkbox" id="smsConsent">
-                    <span>By providing your mobile number and selecting the opt-in box, you agree to receive recurring promotional and automated text messages, including reward reminders from Web 2.0 Business Center. Message and data rates may apply. Message frequency may vary. Reply HELP for help; STOP to opt-out. Consent is not a condition for purchase. View our <a href="https://web20businesscenter.com/privacy-policy/" target="_blank" rel="noopener">privacy policy</a> and <a href="https://web20businesscenter.com/terms-and-conditions/" target="_blank" rel="noopener">terms and conditions</a>.</span>
                 </label>
             </div>
 
@@ -2304,8 +2307,8 @@
                 return;
             }
 
-            if (!document.getElementById('emailConsent').checked || !document.getElementById('smsConsent').checked) {
-                showError('registerError', 'Please check both consent boxes to continue');
+            if (!document.getElementById('emailConsent').checked) {
+                showError('registerError', 'Please check the email consent box to continue');
                 return;
             }
 
