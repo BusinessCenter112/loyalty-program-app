@@ -3131,7 +3131,7 @@
             const successScroll = document.querySelector('.success-scroll');
             if (successScroll) successScroll.scrollTop = 0;
             showScreen('phoneScreen');
-            resetIdleTimer();
+            // resetIdleTimer(); — disabled 2026-04-09, attract screen physics loop drains iPad battery
             // Re-show tap screen so next customer tap opens keyboard correctly
             document.getElementById('tapToBegin').classList.remove('hidden');
         }
