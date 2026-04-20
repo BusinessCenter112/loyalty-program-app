@@ -284,6 +284,8 @@ app.get('/api/customers/search', async (req, res) => {
                 OR LOWER(last_name) LIKE $1
                 OR LOWER(email) LIKE $1
                 OR LOWER(first_name || ' ' || last_name) LIKE $1
+                OR REPLACE(phone_number, '-', '') LIKE $1
+                OR phone_number LIKE $1
              ORDER BY last_name, first_name`,
             [searchPattern]
         );
