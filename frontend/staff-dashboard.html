@@ -1513,6 +1513,21 @@
             return null;
         }
 
+        function calcEligibleRewards(customer) {
+            let count = 0;
+            if (customer.total_dropoffs >= 10 && !customer.bronze_reward_claimed) count++;
+            if (customer.total_dropoffs >= 25 && !customer.silver_reward_claimed) count++;
+            if (customer.total_dropoffs >= 50 && !customer.gold_reward_claimed) count++;
+            return count;
+        }
+
+        function dropsUntilNextTier(totalDropoffs) {
+            if (totalDropoffs < 10) return `${10 - totalDropoffs} to Bronze`;
+            if (totalDropoffs < 25) return `${25 - totalDropoffs} to Silver`;
+            if (totalDropoffs < 50) return `${50 - totalDropoffs} to Gold`;
+            return 'Max tier';
+        }
+
         function getRankBadgeHTML(totalDropoffs) {
             const rank = getRank(totalDropoffs);
             if (!rank) return '';
@@ -1537,8 +1552,8 @@
                 card.className = 'customer-card';
                 card.onclick = () => selectCustomer(customer);
 
-                const eligibleRewards = Math.floor(customer.total_dropoffs / 10) - customer.rewards_redeemed;
-                const dropoffsUntilReward = 10 - (customer.total_dropoffs % 10);
+                const eligibleRewards = calcEligibleRewards(customer);
+                const nextTierLabel = dropsUntilNextTier(customer.total_dropoffs);
                 const rankBadge = getRankBadgeHTML(customer.total_dropoffs);
 
                 const referralInfo = customer.referred_by
@@ -1560,8 +1575,8 @@
                             <span class="stat-value">${eligibleRewards}</span>
                         </div>
                         <div class="stat">
-                            <span class="stat-label">Until Next Reward:</span>
-                            <span class="stat-value">${dropoffsUntilReward}</span>
+                            <span class="stat-label">Until Next Tier:</span>
+                            <span class="stat-value">${nextTierLabel}</span>
                         </div>
                     </div>
                 `;
@@ -1608,7 +1623,7 @@
             }
 
             // Check for available rewards
-            const eligibleRewards = Math.floor(customer.total_dropoffs / 10) - customer.rewards_redeemed;
+            const eligibleRewards = calcEligibleRewards(customer);
 
             if (eligibleRewards > 0) {
                 document.getElementById('rewardBanner').textContent =
@@ -1768,7 +1783,7 @@
                     selectedCustomer = data.customer;
 
                     // Hide reward banner if no more rewards
-                    const eligibleRewards = Math.floor(selectedCustomer.total_dropoffs / 10) - selectedCustomer.rewards_redeemed;
+                    const eligibleRewards = calcEligibleRewards(selectedCustomer);
 
                     if (eligibleRewards === 0) {
                         document.getElementById('rewardBanner').classList.remove('show');
