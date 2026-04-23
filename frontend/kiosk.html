@@ -2355,7 +2355,13 @@
                         button.style.pointerEvents = '';
                     }
                 } else if (response.status === 404) {
-                    // New customer - show registration
+                    // New customer — require SMS consent before proceeding
+                    if (!document.getElementById('smsConsent').checked) {
+                        showError('phoneError', 'Please check the box above to agree to the terms and continue.');
+                        button.textContent = originalText;
+                        button.style.pointerEvents = '';
+                        return;
+                    }
                     document.getElementById('registerPhone').value = phoneInput.value;
                     showScreen('registerScreen');
                     button.textContent = originalText;
