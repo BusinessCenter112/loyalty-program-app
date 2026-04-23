@@ -978,6 +978,153 @@
             100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
         }
 
+        /* ── Gold Tier Celebration ── */
+        .gold-celebration-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10003;
+            overflow: hidden;
+            background: #FFD700;
+        }
+        .gold-celebration-overlay.active {
+            display: flex;
+            animation: goldBgSettle 0.7s 0.15s ease forwards;
+        }
+        @keyframes goldBgSettle {
+            from { background-color: #FFD700; }
+            to   { background-color: #080400; }
+        }
+        .gold-celebration-overlay.fade-out {
+            animation: goldOverlayFadeOut 0.8s ease forwards;
+        }
+        @keyframes goldOverlayFadeOut {
+            to { opacity: 0; }
+        }
+        .gold-celebration-overlay.shake {
+            animation: goldShake 0.45s ease;
+        }
+        @keyframes goldShake {
+            0%,100% { transform: translate(0,0); }
+            15%  { transform: translate(-10px, 5px); }
+            30%  { transform: translate(10px, -5px); }
+            45%  { transform: translate(-7px, 3px); }
+            60%  { transform: translate(7px, -3px); }
+            75%  { transform: translate(-4px, 2px); }
+        }
+        .gold-trophy-el {
+            font-size: 150px;
+            line-height: 1;
+            transform: translateY(-350px);
+            opacity: 0;
+            filter: drop-shadow(0 0 40px rgba(255,215,0,0.95)) drop-shadow(0 0 80px rgba(255,165,0,0.6));
+            position: relative;
+            z-index: 2;
+        }
+        .gold-trophy-el.drop {
+            animation: goldTrophyDrop 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        @keyframes goldTrophyDrop {
+            0%   { transform: translateY(-350px); opacity: 0; }
+            55%  { transform: translateY(28px);   opacity: 1; }
+            72%  { transform: translateY(-14px); }
+            86%  { transform: translateY(8px); }
+            100% { transform: translateY(0);       opacity: 1; }
+        }
+        .gold-tier-title {
+            font-size: 82px;
+            font-weight: 900;
+            color: #FFD700;
+            letter-spacing: 0.14em;
+            text-shadow: 0 0 50px rgba(255,215,0,0.9), 0 0 100px rgba(255,165,0,0.5), 0 5px 0 rgba(0,0,0,0.7);
+            transform: scale(0);
+            opacity: 0;
+            margin: 14px 0 4px;
+            position: relative; z-index: 2;
+        }
+        .gold-tier-title.burst {
+            animation: goldTextBurst 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        .gold-tier-subtitle {
+            font-size: 32px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.9);
+            letter-spacing: 0.35em;
+            transform: scale(0);
+            opacity: 0;
+            position: relative; z-index: 2;
+        }
+        .gold-tier-subtitle.burst {
+            animation: goldTextBurst 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes goldTextBurst {
+            0%   { transform: scale(0);    opacity: 0; }
+            65%  { transform: scale(1.18); opacity: 1; }
+            100% { transform: scale(1);    opacity: 1; }
+        }
+        .gold-congrats-text {
+            font-size: 30px;
+            font-weight: 600;
+            color: white;
+            opacity: 0;
+            margin-top: 22px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+            position: relative; z-index: 2;
+        }
+        .gold-congrats-text.show {
+            animation: goldFadeUp 0.65s ease forwards;
+        }
+        @keyframes goldFadeUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .gold-confetti-container {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .gold-confetti-piece {
+            position: absolute;
+            top: -20px;
+        }
+        @keyframes confettiFall {
+            0%   { transform: translateY(0) rotate(0deg);    opacity: 1; }
+            85%  { opacity: 1; }
+            100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+        .gold-coin-burst {
+            position: absolute;
+            top: 38%;
+            left: 50%;
+            font-size: 28px;
+            pointer-events: none;
+            animation: goldCoinBurst 1.3s ease-out forwards;
+        }
+        @keyframes goldCoinBurst {
+            0%   { transform: translate(-50%,-50%) translate(0,0) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%,-50%) translate(var(--tx),var(--ty)) scale(0.2); opacity: 0; }
+        }
+        .gold-ray {
+            position: absolute;
+            top: 38%;
+            left: 50%;
+            width: 3px;
+            height: 0;
+            background: linear-gradient(to bottom, rgba(255,215,0,0.7), transparent);
+            transform-origin: top center;
+            transform: translateX(-50%) rotate(var(--angle));
+            animation: goldRayExpand 1.1s ease-out forwards;
+        }
+        @keyframes goldRayExpand {
+            0%   { height: 0;     opacity: 0; }
+            20%  { opacity: 0.8; }
+            100% { height: 65vh; opacity: 0; }
+        }
+
         /* Milestone Celebration Styles */
         .milestone-content {
             text-align: center;
@@ -1766,6 +1913,15 @@
         </div>
     </div>
 
+    <!-- Gold Tier Celebration Overlay -->
+    <div id="goldCelebration" class="gold-celebration-overlay">
+        <div id="goldConfettiContainer" class="gold-confetti-container"></div>
+        <div id="goldTrophyEl" class="gold-trophy-el">🏆</div>
+        <div id="goldTitleEl" class="gold-tier-title">GOLD TIER</div>
+        <div id="goldSubtitleEl" class="gold-tier-subtitle">UNLOCKED</div>
+        <div id="goldCongratsEl" class="gold-congrats-text"></div>
+    </div>
+
     <!-- ========== ATTRACT / IDLE SCREEN ========== -->
     <div id="attractScreen">
         <!-- Clouds -->
@@ -2494,10 +2650,10 @@
                 document.getElementById('rewardBadge').style.display = 'none';
             }
 
-            // Play tier unlock chime at exactly Bronze (10), Silver (25), Gold (50)
+            // Play tier unlock chime at exactly Bronze (10) or Silver (25)
+            // Gold (50) chime is handled inside playGoldCelebration
             const d = customer.total_dropoffs;
-            if (d === 50) playTierChime('gold');
-            else if (d === 25) playTierChime('silver');
+            if (d === 25) playTierChime('silver');
             else if (d === 10) playTierChime('bronze');
 
             // Redemption callout — show whenever they have banked rewards
@@ -2920,6 +3076,12 @@
         }
 
         function playRankUpCelebration(oldRank, newRank, callback) {
+            if (newRank.class === 'gold') {
+                const name = (currentCustomer && currentCustomer.first_name) ? currentCustomer.first_name : 'Champion';
+                playGoldCelebration(name, callback);
+                return;
+            }
+
             const overlay = document.getElementById('rankupOverlay');
             const worker = document.getElementById('rankupWorker');
             const hammer = document.getElementById('rankupHammer');
@@ -3043,6 +3205,100 @@
                 platinum: '#A0B2C6'
             };
             return colors[rankClass] || '#666';
+        }
+
+        function playGoldCelebration(customerName, callback) {
+            const overlay    = document.getElementById('goldCelebration');
+            const trophy     = document.getElementById('goldTrophyEl');
+            const title      = document.getElementById('goldTitleEl');
+            const subtitle   = document.getElementById('goldSubtitleEl');
+            const congrats   = document.getElementById('goldCongratsEl');
+            const confettiEl = document.getElementById('goldConfettiContainer');
+
+            // Reset
+            overlay.className   = 'gold-celebration-overlay';
+            trophy.className    = 'gold-trophy-el';
+            title.className     = 'gold-tier-title';
+            subtitle.className  = 'gold-tier-subtitle';
+            congrats.className  = 'gold-congrats-text';
+            confettiEl.innerHTML = '';
+            congrats.textContent = `Congratulations, ${customerName}!`;
+
+            overlay.classList.add('active');
+
+            // Confetti starts right away
+            spawnGoldConfetti(confettiEl, 120);
+
+            // Trophy drops
+            setTimeout(() => trophy.classList.add('drop'), 250);
+
+            // Screen shake + rays + coins on impact
+            setTimeout(() => {
+                overlay.classList.add('shake');
+                setTimeout(() => overlay.classList.remove('shake'), 450);
+                spawnGoldRays(overlay);
+                spawnGoldCoins(overlay);
+                playTierChime('gold');
+            }, 700);
+
+            // Title and subtitle burst
+            setTimeout(() => title.classList.add('burst'),    950);
+            setTimeout(() => subtitle.classList.add('burst'), 1150);
+
+            // Congrats name
+            setTimeout(() => congrats.classList.add('show'), 1600);
+
+            // Fade out and hand off to success screen
+            setTimeout(() => overlay.classList.add('fade-out'), 4600);
+            setTimeout(() => {
+                overlay.className    = 'gold-celebration-overlay';
+                confettiEl.innerHTML = '';
+                if (callback) callback();
+            }, 5400);
+        }
+
+        function spawnGoldConfetti(container, count) {
+            const colors = ['#FFD700','#FFA500','#FFB830','#FFEC6E','#FFF59D','#FF8C00','#FFCA28','#FFE57F'];
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    const piece    = document.createElement('div');
+                    piece.className = 'gold-confetti-piece';
+                    const color    = colors[Math.floor(Math.random() * colors.length)];
+                    const x        = Math.random() * 100;
+                    const size     = 8 + Math.random() * 14;
+                    const duration = 2.5 + Math.random() * 2.5;
+                    const delay    = Math.random() * 0.4;
+                    const isCircle = Math.random() > 0.4;
+                    piece.style.cssText = `left:${x}%;width:${size}px;height:${isCircle ? size : size * 0.35}px;background:${color};border-radius:${isCircle ? '50%' : '2px'};animation:confettiFall ${duration}s ${delay}s ease-in forwards;`;
+                    container.appendChild(piece);
+                    setTimeout(() => piece.remove(), (duration + delay + 0.5) * 1000);
+                }, i * 30);
+            }
+        }
+
+        function spawnGoldCoins(parent) {
+            for (let i = 0; i < 22; i++) {
+                const coin  = document.createElement('div');
+                coin.className = 'gold-coin-burst';
+                const angle = (Math.PI * 2 * i) / 22;
+                const dist  = 130 + Math.random() * 200;
+                coin.style.setProperty('--tx', (Math.cos(angle) * dist) + 'px');
+                coin.style.setProperty('--ty', (Math.sin(angle) * dist) + 'px');
+                coin.textContent = '🪙';
+                parent.appendChild(coin);
+                setTimeout(() => coin.remove(), 1400);
+            }
+        }
+
+        function spawnGoldRays(parent) {
+            const count = 14;
+            for (let i = 0; i < count; i++) {
+                const ray = document.createElement('div');
+                ray.className = 'gold-ray';
+                ray.style.setProperty('--angle', (i * (360 / count)) + 'deg');
+                parent.appendChild(ray);
+                setTimeout(() => ray.remove(), 1200);
+            }
         }
 
         function playTierChime(tier) {
