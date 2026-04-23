@@ -160,6 +160,14 @@ async function initializeDatabase() {
 
 // API Routes
 
+function calcEligibleRewards(customer) {
+    let count = 0;
+    if (customer.total_dropoffs >= 10 && !customer.bronze_reward_claimed) count++;
+    if (customer.total_dropoffs >= 25 && !customer.silver_reward_claimed) count++;
+    if (customer.total_dropoffs >= 50 && !customer.gold_reward_claimed) count++;
+    return count;
+}
+
 // Health check endpoint - keeps database connection warm
 app.get('/api/health', async (req, res) => {
     try {
@@ -316,7 +324,7 @@ app.get('/api/customers/phone/:phone', async (req, res) => {
         }
 
         const customer = result.rows[0];
-        const eligibleRewards = Math.floor(customer.total_dropoffs / 10) - customer.rewards_redeemed;
+        const eligibleRewards = calcEligibleRewards(customer);
 
         res.json({
             success: true,
@@ -402,7 +410,7 @@ app.post('/api/dropoffs', async (req, res) => {
         );
 
         const customer = updatedCustomer.rows[0];
-        const eligibleRewards = Math.floor(customer.total_dropoffs / 10) - customer.rewards_redeemed;
+        const eligibleRewards = calcEligibleRewards(customer);
 
         res.json({
             success: true,
@@ -438,7 +446,7 @@ app.post('/api/rewards/redeem', async (req, res) => {
         }
 
         const customer = customerResult.rows[0];
-        const eligibleRewards = Math.floor(customer.total_dropoffs / 10) - customer.rewards_redeemed;
+        const eligibleRewards = calcEligibleRewards(customer);
 
         if (eligibleRewards <= 0) {
             return res.status(400).json({ error: 'No rewards available to redeem' });
@@ -720,7 +728,7 @@ app.delete('/api/dropoffs/:id', async (req, res) => {
         await client.query('COMMIT');
 
         const customer = customerResult.rows[0];
-        const eligibleRewards = Math.floor(customer.total_dropoffs / 10) - customer.rewards_redeemed;
+        const eligibleRewards = calcEligibleRewards(customer);
 
         res.json({
             success: true,
