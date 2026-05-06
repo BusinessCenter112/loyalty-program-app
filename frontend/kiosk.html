@@ -1982,10 +1982,17 @@
 
             <div id="phoneError" class="error-message" style="display: none;"></div>
 
-            <div class="consent-group" style="margin: 4px 0 16px;">
+            <div class="consent-group" style="margin: 4px 0 8px;">
                 <label class="consent-label">
                     <input type="checkbox" id="smsConsent">
                     <span>By providing your mobile number and selecting the opt-in box, you agree to receive recurring promotional and automated text messages, including reward reminders from Web 2.0 Business Center. Message and data rates may apply. Message frequency may vary. Reply HELP for help; STOP to opt-out. Consent is not a condition for purchase. View our <a href="https://web20businesscenter.com/privacy-policy/" target="_blank" rel="noopener">privacy policy</a> and <a href="https://web20businesscenter.com/terms-and-conditions/" target="_blank" rel="noopener">terms and conditions</a>.</span>
+                </label>
+            </div>
+
+            <div class="consent-group" style="margin: 0 0 16px;">
+                <label class="consent-label">
+                    <input type="checkbox" id="termsConsent">
+                    <span>I agree to the Web 2.0 Business Center <a href="https://web20businesscenter.com/terms-and-conditions/" target="_blank" rel="noopener">Terms and Conditions</a> and <a href="https://web20businesscenter.com/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a>.</span>
                 </label>
             </div>
 
@@ -2355,9 +2362,9 @@
                         button.style.pointerEvents = '';
                     }
                 } else if (response.status === 404) {
-                    // New customer — require SMS consent before proceeding
-                    if (!document.getElementById('smsConsent').checked) {
-                        showError('phoneError', 'Please check the box above to agree to the terms and continue.');
+                    // New customer — require both consent boxes before proceeding
+                    if (!document.getElementById('smsConsent').checked || !document.getElementById('termsConsent').checked) {
+                        showError('phoneError', 'Please check both boxes above to agree to the terms and continue.');
                         button.textContent = originalText;
                         button.style.pointerEvents = '';
                         return;
@@ -3386,6 +3393,7 @@
             document.getElementById('referredBy').value = '';
             document.getElementById('emailConsent').checked = false;
             document.getElementById('smsConsent').checked = false;
+            document.getElementById('termsConsent').checked = false;
             document.getElementById('historySection').style.display = 'none';
             // Reset progress ring
             document.getElementById('progressRing').style.strokeDashoffset = 377;
