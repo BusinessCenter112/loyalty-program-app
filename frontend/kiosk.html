@@ -1994,12 +1994,7 @@
                 <span style="font-size: 11px; color: #999; line-height: 1.5; padding: 0 2px;">Message and data rates may apply. Message frequency may vary. Reply HELP for help; STOP to opt-out. Consent is not a condition for purchase.</span>
             </div>
 
-            <div class="consent-group" style="margin: 8px 0 16px;">
-                <label class="consent-label">
-                    <input type="checkbox" id="termsConsent">
-                    <span>I agree to the Web 2.0 Business Center <a href="https://web20businesscenter.com/terms-and-conditions/" target="_blank" rel="noopener">Terms and Conditions</a> and <a href="https://web20businesscenter.com/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a>.</span>
-                </label>
-            </div>
+            <p style="font-size: 11px; color: #999; line-height: 1.5; margin: 8px 0 16px; text-align: center;">By continuing, you agree to our <a href="https://web20businesscenter.com/terms-and-conditions/" target="_blank" rel="noopener" style="color: #FFB830;">Terms and Conditions</a> and <a href="https://web20businesscenter.com/privacy-policy/" target="_blank" rel="noopener" style="color: #FFB830;">Privacy Policy</a>.</p>
 
             <div class="staff-link" style="display: flex; justify-content: space-between; align-items: center;">
                 <a href="leaderboard.html" style="font-weight: 600;">🏆 View Leaderboard</a>
@@ -2367,9 +2362,9 @@
                         button.style.pointerEvents = '';
                     }
                 } else if (response.status === 404) {
-                    // New customer — require all consent boxes before proceeding
-                    if (!document.getElementById('smsConsent').checked || !document.getElementById('smsRewardsConsent').checked || !document.getElementById('termsConsent').checked) {
-                        showError('phoneError', 'Please check all boxes above to agree to the terms and continue.');
+                    // New customer — require both SMS consent boxes before proceeding
+                    if (!document.getElementById('smsConsent').checked || !document.getElementById('smsRewardsConsent').checked) {
+                        showError('phoneError', 'Please check both boxes above to continue.');
                         button.textContent = originalText;
                         button.style.pointerEvents = '';
                         return;
@@ -3399,7 +3394,6 @@
             document.getElementById('emailConsent').checked = false;
             document.getElementById('smsConsent').checked = false;
             document.getElementById('smsRewardsConsent').checked = false;
-            document.getElementById('termsConsent').checked = false;
             document.getElementById('historySection').style.display = 'none';
             // Reset progress ring
             document.getElementById('progressRing').style.strokeDashoffset = 377;
