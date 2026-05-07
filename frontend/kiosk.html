@@ -1982,14 +1982,19 @@
 
             <div id="phoneError" class="error-message" style="display: none;"></div>
 
-            <div class="consent-group" style="margin: 4px 0 8px;">
+            <div class="consent-group" style="margin: 4px 0 0;">
                 <label class="consent-label">
                     <input type="checkbox" id="smsConsent">
-                    <span>By providing your mobile number and selecting the opt-in box, you agree to receive recurring promotional and automated text messages, including reward reminders from Web 2.0 Business Center. Message and data rates may apply. Message frequency may vary. Reply HELP for help; STOP to opt-out. Consent is not a condition for purchase.</span>
+                    <span>I agree to receive recurring promotional text messages from Web 2.0 Business Center.</span>
                 </label>
+                <label class="consent-label">
+                    <input type="checkbox" id="smsRewardsConsent">
+                    <span>I agree to receive automated reward reminder text messages from Web 2.0 Business Center.</span>
+                </label>
+                <span style="font-size: 11px; color: #999; line-height: 1.5; padding: 0 2px;">Message and data rates may apply. Message frequency may vary. Reply HELP for help; STOP to opt-out. Consent is not a condition for purchase.</span>
             </div>
 
-            <div class="consent-group" style="margin: 0 0 16px;">
+            <div class="consent-group" style="margin: 8px 0 16px;">
                 <label class="consent-label">
                     <input type="checkbox" id="termsConsent">
                     <span>I agree to the Web 2.0 Business Center <a href="https://web20businesscenter.com/terms-and-conditions/" target="_blank" rel="noopener">Terms and Conditions</a> and <a href="https://web20businesscenter.com/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a>.</span>
@@ -2362,9 +2367,9 @@
                         button.style.pointerEvents = '';
                     }
                 } else if (response.status === 404) {
-                    // New customer — require both consent boxes before proceeding
-                    if (!document.getElementById('smsConsent').checked || !document.getElementById('termsConsent').checked) {
-                        showError('phoneError', 'Please check both boxes above to agree to the terms and continue.');
+                    // New customer — require all consent boxes before proceeding
+                    if (!document.getElementById('smsConsent').checked || !document.getElementById('smsRewardsConsent').checked || !document.getElementById('termsConsent').checked) {
+                        showError('phoneError', 'Please check all boxes above to agree to the terms and continue.');
                         button.textContent = originalText;
                         button.style.pointerEvents = '';
                         return;
@@ -3393,6 +3398,7 @@
             document.getElementById('referredBy').value = '';
             document.getElementById('emailConsent').checked = false;
             document.getElementById('smsConsent').checked = false;
+            document.getElementById('smsRewardsConsent').checked = false;
             document.getElementById('termsConsent').checked = false;
             document.getElementById('historySection').style.display = 'none';
             // Reset progress ring
