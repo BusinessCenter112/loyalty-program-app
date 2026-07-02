@@ -507,6 +507,39 @@ app.get('/api/customers', async (req, res) => {
     }
 });
 
+// Export customers as CSV (name, email, phone) for SMS platform import
+app.get('/api/customers/export/csv', async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT first_name, last_name, email, phone_number
+             FROM customers
+             ORDER BY created_at DESC`
+        );
+
+        const escapeCsv = (value) => {
+            const str = value === null || value === undefined ? '' : String(value);
+            return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+        };
+
+        const header = 'First Name,Last Name,Email,Phone Number';
+        const rows = result.rows.map((c) => [
+            c.first_name,
+            c.last_name,
+            c.email,
+            c.phone_number
+        ].map(escapeCsv).join(','));
+
+        const csv = [header, ...rows].join('\n');
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="customers.csv"');
+        res.send(csv);
+    } catch (error) {
+        console.error('Export customers CSV error:', error);
+        res.status(500).json({ error: 'Failed to export customers', details: error.message });
+    }
+});
+
 // Get leaderboard (top 10 customers by drop-offs)
 app.get('/api/leaderboard', async (req, res) => {
     try {

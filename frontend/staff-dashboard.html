@@ -934,7 +934,10 @@
             <h1>Staff Dashboard</h1>
             <div class="staff-info" id="staffInfo"></div>
         </div>
-        <button class="logout-btn" onclick="logout()">Logout</button>
+        <div style="display: flex; gap: 10px;">
+            <button class="logout-btn" onclick="exportCustomersCsv()" style="background: #4169E1;">Export CSV</button>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
     </div>
 
     <!-- Tab Navigation -->
@@ -2054,6 +2057,10 @@
         function logout() {
             sessionStorage.clear();
             window.location.href = 'staff-login.html';
+        }
+
+        function exportCustomersCsv() {
+            window.location.href = `${API_URL}/customers/export/csv`;
         }
 
         function playSound(soundId) {
