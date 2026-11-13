@@ -2302,13 +2302,7 @@
             button.style.pointerEvents = 'none';
 
             // Unlock audio for iOS (must happen during user interaction)
-            const dropoffSound = document.getElementById('dropoffSound');
-            if (dropoffSound) {
-                dropoffSound.play().then(() => {
-                    dropoffSound.pause();
-                    dropoffSound.currentTime = 0;
-                }).catch(() => {});
-            }
+            primeSound('dropoffSound');
 
             try {
                 const response = await fetch(`${API_URL}/customers/phone/${phone}`);
@@ -2390,13 +2384,7 @@
             if (!currentCustomer) return;
 
             // Unlock audio for iOS (must happen during user interaction)
-            const dropoffSound = document.getElementById('dropoffSound');
-            if (dropoffSound) {
-                dropoffSound.play().then(() => {
-                    dropoffSound.pause();
-                    dropoffSound.currentTime = 0;
-                }).catch(() => {});
-            }
+            primeSound('dropoffSound');
 
             // Store old total for rank-up check
             const oldTotal = currentCustomer.total_dropoffs;
@@ -2479,13 +2467,7 @@
             const emailConsent = document.getElementById('emailConsent').checked;
 
             // Unlock audio for iOS (must happen during user interaction)
-            const welcomeSound = document.getElementById('welcomeSound');
-            if (welcomeSound) {
-                welcomeSound.play().then(() => {
-                    welcomeSound.pause();
-                    welcomeSound.currentTime = 0;
-                }).catch(() => {});
-            }
+            primeSound('welcomeSound');
 
             const button = document.getElementById('registerSubmit');
             const originalText = button.textContent;
@@ -3356,9 +3338,26 @@
             }
         }
 
+        // Unlock a sound for iOS during the button tap (iOS only allows later playback of a sound
+        // that was started inside a tap). The quick start/stop must NOT stop the real sound: if the
+        // file was slow to load, this play() can finish after playSound() has already started it,
+        // so we only pause when the real sound hasn't been requested yet.
+        function primeSound(soundId) {
+            const sound = document.getElementById(soundId);
+            if (!sound) return;
+            sound._realPlayRequested = false;
+            sound.play().then(() => {
+                if (!sound._realPlayRequested) {
+                    sound.pause();
+                    sound.currentTime = 0;
+                }
+            }).catch(() => {});
+        }
+
         function playSound(soundId) {
             const sound = document.getElementById(soundId);
             if (sound) {
+                sound._realPlayRequested = true;
                 sound.currentTime = 0;
                 sound.play().catch(e => {
                     // Audio play may fail if user hasn't interacted with page yet

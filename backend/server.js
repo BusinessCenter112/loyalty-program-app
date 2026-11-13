@@ -437,16 +437,17 @@ app.get('/api/customers/search', async (req, res) => {
 });
 
 // Recent activity for the staff dashboard:
-//  - rewardReady: customers with an unclaimed tier reward, most recent visit first
-//  - newSignups: newest customers first
+//  - rewardReady: customers with an unclaimed tier reward, most recent visit first (all of them; the page shows 10 until "Show all")
+//  - newSignups: newest customers first (?signups=N, default 10)
 app.get('/api/recent-activity', async (req, res) => {
+    const signupLimit = Math.min(Math.max(parseInt(req.query.signups, 10) || 10, 1), 500);
     try {
         const readyWhere = `
             (c.total_dropoffs >= 10 AND NOT COALESCE(c.bronze_reward_claimed, FALSE))
             OR (c.total_dropoffs >= 25 AND NOT COALESCE(c.silver_reward_claimed, FALSE))
             OR (c.total_dropoffs >= 50 AND NOT COALESCE(c.gold_reward_claimed, FALSE))`;
 
-        const [ready, readyCount, signups] = await Promise.all([
+        const [ready, readyCount, signups, signupCount] = await Promise.all([
             pool.query(`
                 SELECT c.*, lv.last_visit
                 FROM customers c
@@ -456,15 +457,17 @@ app.get('/api/recent-activity', async (req, res) => {
                 ) lv ON lv.customer_id = c.id
                 WHERE ${readyWhere}
                 ORDER BY lv.last_visit DESC NULLS LAST
-                LIMIT 10`),
+                LIMIT 500`),
             pool.query(`SELECT COUNT(*) FROM customers c WHERE ${readyWhere}`),
-            pool.query(`SELECT * FROM customers ORDER BY created_at DESC LIMIT 10`)
+            pool.query(`SELECT * FROM customers ORDER BY created_at DESC LIMIT $1`, [signupLimit]),
+            pool.query(`SELECT COUNT(*) FROM customers`)
         ]);
 
         res.json({
             rewardReady: ready.rows,
             rewardReadyTotal: parseInt(readyCount.rows[0].count, 10),
-            newSignups: signups.rows
+            newSignups: signups.rows,
+            customersTotal: parseInt(signupCount.rows[0].count, 10)
         });
     } catch (error) {
         console.error('Recent activity error:', error);

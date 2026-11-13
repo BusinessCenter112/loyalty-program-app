@@ -351,6 +351,22 @@
             padding: 10px 0;
         }
 
+        .recent-more {
+            width: 100%;
+            margin-top: 8px;
+            padding: 9px 12px;
+            background: white;
+            color: #4169E1;
+            border: 1px solid #c9d4f5;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .recent-more:hover { background: #eef2ff; }
+
         .results-section {
             background: white;
             border: 1px solid #e8eaf0;
@@ -1164,11 +1180,13 @@
                     <h3>🎉 Reward Ready</h3>
                     <div class="recent-sub" id="rewardReadySub">Customers with an unclaimed reward, most recent visit first</div>
                     <div class="recent-list" id="rewardReadyList"><div class="recent-empty">Loading…</div></div>
+                    <button class="recent-more" id="rewardReadyMore" style="display: none;" onclick="toggleAllRewards()"></button>
                 </div>
                 <div class="recent-col">
                     <h3>🆕 New Sign-ups</h3>
                     <div class="recent-sub">Newest members first</div>
                     <div class="recent-list" id="newSignupsList"><div class="recent-empty">Loading…</div></div>
+                    <button class="recent-more" id="newSignupsMore" style="display: none;" onclick="showMoreSignups()"></button>
                 </div>
             </div>
         </div>
@@ -2234,18 +2252,56 @@
             });
         }
 
+        const RECENT_PAGE = 10;
+        let showAllRewards = false;
+        let signupsShown = RECENT_PAGE;
+        let signupsAllShown = false;
+
+        function toggleAllRewards() {
+            showAllRewards = !showAllRewards;
+            loadRecentActivity();
+        }
+
+        function showMoreSignups() {
+            // Once everyone is listed the button reads "Show less" and collapses back to 10
+            signupsShown = signupsAllShown ? RECENT_PAGE : signupsShown + RECENT_PAGE;
+            loadRecentActivity();
+        }
+
         async function loadRecentActivity() {
             try {
-                const res = await fetch(`${API_URL}/recent-activity`);
+                const res = await fetch(`${API_URL}/recent-activity?signups=${signupsShown}`);
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Failed');
-                renderRecentList('rewardReadyList', data.rewardReady, 'reward');
-                renderRecentList('newSignupsList', data.newSignups, 'signup');
-                const extra = data.rewardReadyTotal > data.rewardReady.length
-                    ? ` (showing ${data.rewardReady.length} of ${data.rewardReadyTotal})`
-                    : '';
+
+                // Reward Ready: first 10, or everyone after "Show all"
+                const total = data.rewardReadyTotal;
+                const rewardRows = showAllRewards ? data.rewardReady : data.rewardReady.slice(0, RECENT_PAGE);
+                renderRecentList('rewardReadyList', rewardRows, 'reward');
                 document.getElementById('rewardReadySub').textContent =
-                    `Customers with an unclaimed reward, most recent visit first${extra}`;
+                    `Customers with an unclaimed reward, most recent visit first (${total} total)`;
+                const rewardBtn = document.getElementById('rewardReadyMore');
+                if (total > RECENT_PAGE) {
+                    rewardBtn.textContent = showAllRewards ? 'Show less ▴' : `Show all ${total} ▾`;
+                    rewardBtn.style.display = 'block';
+                } else {
+                    rewardBtn.style.display = 'none';
+                }
+
+                // New Sign-ups: 10 at a time
+                renderRecentList('newSignupsList', data.newSignups, 'signup');
+                const signupBtn = document.getElementById('newSignupsMore');
+                const remaining = data.customersTotal - data.newSignups.length;
+                signupsAllShown = remaining <= 0;
+                if (remaining > 0) {
+                    signupBtn.textContent = `Show ${Math.min(RECENT_PAGE, remaining)} more ▾`;
+                    signupBtn.style.display = 'block';
+                } else if (signupsShown > RECENT_PAGE) {
+                    signupBtn.textContent = 'Show less ▴';
+                    signupBtn.style.display = 'block';
+                } else {
+                    signupBtn.style.display = 'none';
+                }
             } catch (e) {
                 console.error('Recent activity error:', e);
                 ['rewardReadyList', 'newSignupsList'].forEach(id => {
