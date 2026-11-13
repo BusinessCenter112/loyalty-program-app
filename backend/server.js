@@ -35,7 +35,7 @@ const pool = new Pool({
 const AWEBER_AUTH_URL = 'https://auth.aweber.com/oauth2';
 const AWEBER_API_URL = 'https://api.aweber.com/1.0';
 const AWEBER_SCOPES = 'account.read list.read subscriber.read subscriber.write';
-const AWEBER_LIST_NAME = process.env.AWEBER_LIST_NAME || 'Web 2.0 Business Center Rewards Club';
+const AWEBER_LIST_NAME = process.env.AWEBER_LIST_NAME || 'Business Center Rewards Club';
 const AWEBER_REDIRECT_URI = process.env.AWEBER_REDIRECT_URI || 'https://loyalty-program-app-xb1v.onrender.com/api/aweber/callback';
 
 function aweberConfigured() {
