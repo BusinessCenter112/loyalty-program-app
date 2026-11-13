@@ -3297,7 +3297,9 @@
 
         function playTierChime(tier) {
             try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                if (ctx.state !== 'running') ctx.resume().catch(() => {});
                 let notes, duration, gap, type;
 
                 if (tier === 'gold') {
@@ -3339,11 +3341,62 @@
             }
         }
 
-        // Unlock a sound for iOS during the button tap (iOS only allows later playback of a sound
-        // that was started inside a tap). The quick start/stop must NOT stop the real sound: if the
-        // file was slow to load, this play() can finish after playSound() has already started it,
-        // so we only pause when the real sound hasn't been requested yet.
+        // ── Sounds ──────────────────────────────────────────────
+        // Sounds are decoded into memory when the page opens and played through one shared Web Audio
+        // context. iPad Safari only lets sound start from a tap, so every tap "unlocks" the context;
+        // after that, sounds can play later (after the network calls) without needing the file to load.
+        // The <audio> tags at the top of the page say which file each sound uses — change the src there.
+        // If Web Audio isn't ready for some reason, we fall back to the old <audio> tag playback.
+        let audioCtx = null;
+        const soundBuffers = {};
+
+        // Play through the iPad's silent mode, like a video would (Safari 16.4+; ignored elsewhere)
+        try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+
+        function getAudioCtx() {
+            if (!audioCtx) {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                if (!AC) return null;
+                audioCtx = new AC();
+            }
+            return audioCtx;
+        }
+
+        function loadSoundBuffer(soundId) {
+            const ctx = getAudioCtx();
+            const source = document.querySelector(`#${soundId} source`);
+            if (!ctx || !source) return;
+            fetch(source.getAttribute('src'))
+                .then(res => res.arrayBuffer())
+                // Callback form of decodeAudioData works on older iPads too
+                .then(data => new Promise((resolve, reject) => ctx.decodeAudioData(data, resolve, reject)))
+                .then(buffer => { soundBuffers[soundId] = buffer; })
+                .catch(e => console.log(`Could not preload ${soundId}:`, e && e.message));
+        }
+
+        function unlockAudio() {
+            const ctx = getAudioCtx();
+            if (!ctx) return;
+            if (ctx.state !== 'running') ctx.resume().catch(() => {});
+            // Older iOS also needs a (silent) sound actually started inside the tap
+            try {
+                const silent = ctx.createBufferSource();
+                silent.buffer = ctx.createBuffer(1, 1, 22050);
+                silent.connect(ctx.destination);
+                silent.start(0);
+            } catch (e) {}
+        }
+
+        loadSoundBuffer('welcomeSound');
+        loadSoundBuffer('dropoffSound');
+        document.addEventListener('touchend', unlockAudio, { passive: true });
+        document.addEventListener('click', unlockAudio);
+
+        // Called inside the button tap, right before the network calls.
+        // Unlocks Web Audio, and also primes the <audio> tag in case we need the fallback.
+        // The fallback's quick start/stop only pauses if the real sound hasn't been requested yet.
         function primeSound(soundId) {
+            unlockAudio();
             const sound = document.getElementById(soundId);
             if (!sound) return;
             sound._realPlayRequested = false;
@@ -3357,11 +3410,26 @@
 
         function playSound(soundId) {
             const sound = document.getElementById(soundId);
+            if (sound) sound._realPlayRequested = true;
+
+            const ctx = audioCtx;
+            const buffer = soundBuffers[soundId];
+            if (ctx && buffer && ctx.state === 'running') {
+                try {
+                    if (sound) { sound.pause(); sound.currentTime = 0; } // stop the fallback prime so it can't double up
+                    const src = ctx.createBufferSource();
+                    src.buffer = buffer;
+                    src.connect(ctx.destination);
+                    src.start(0);
+                    return;
+                } catch (e) {
+                    console.log('Web Audio play failed, using fallback:', e.message);
+                }
+            }
+
             if (sound) {
-                sound._realPlayRequested = true;
-                sound.currentTime = 0;
+                try { sound.currentTime = 0; } catch (e) {}
                 sound.play().catch(e => {
-                    // Audio play may fail if user hasn't interacted with page yet
                     console.log('Audio play skipped:', e.message);
                 });
             }
