@@ -1079,6 +1079,14 @@
     <!-- ── CUSTOMER LOOKUP TAB ── -->
     <div id="tab-customers" class="tab-panel">
 
+        <div class="search-section" id="aweberSection">
+            <h2>📧 AWeber Email List</h2>
+            <div id="aweberStatus" style="font-size: 14px; color: #555; margin-bottom: 12px;">Checking connection…</div>
+            <div class="search-box">
+                <button id="aweberConnectBtn" onclick="connectAweber()" style="display: none;">🔗 Connect AWeber</button>
+            </div>
+        </div>
+
         <div class="search-section">
             <h2 style="margin-bottom: 15px;">Search Customer</h2>
             <div class="search-box">
@@ -1203,6 +1211,10 @@
             }
 
             document.getElementById('staffInfo').textContent = `Logged in as ${staffName}`;
+
+            loadAweberStatus();
+            // Coming back from AWeber's connect page: jump straight to the tab with the result
+            if (new URLSearchParams(window.location.search).get('aweber')) switchTab('customers');
 
             // Set today's date as default
             document.getElementById('date').valueAsDate = new Date();
@@ -2053,6 +2065,71 @@
                 alert('Unable to delete customer. Please try again.');
             }
         }
+
+        // ── AWeber email list ──────────────────────────────────────
+
+        async function loadAweberStatus() {
+            const statusEl = document.getElementById('aweberStatus');
+            const btn = document.getElementById('aweberConnectBtn');
+
+            // Message from AWeber's redirect back to the dashboard, shown once
+            const params = new URLSearchParams(window.location.search);
+            const result = params.get('aweber');
+            let resultMsg = '';
+            if (result === 'connected') resultMsg = '✓ AWeber connected! ';
+            if (result === 'error') resultMsg = `⚠️ AWeber connection failed: ${params.get('reason') || 'unknown error'}. `;
+            if (result) history.replaceState(null, '', window.location.pathname);
+
+            try {
+                const res = await fetch(`${API_URL}/aweber/status`);
+                const data = await res.json();
+                if (!data.configured) {
+                    statusEl.textContent = resultMsg + 'AWeber is not set up yet (codes missing on Render).';
+                    btn.style.display = 'none';
+                } else if (data.connected) {
+                    statusEl.textContent = resultMsg + `Connected to "${data.listName}". New customers who check the email box are added automatically (${data.addedCount} added so far).`;
+                    btn.textContent = '🔄 Reconnect AWeber';
+                    btn.style.display = 'inline-block';
+                } else {
+                    statusEl.textContent = resultMsg + 'Not connected yet. Click below and log in to AWeber to connect your email list.';
+                    btn.textContent = '🔗 Connect AWeber';
+                    btn.style.display = 'inline-block';
+                }
+                statusEl.style.color = result === 'error' ? '#c0392b' : '#555';
+            } catch (e) {
+                statusEl.textContent = resultMsg + 'Could not load AWeber status.';
+            }
+        }
+
+        async function connectAweber() {
+            const statusEl = document.getElementById('aweberStatus');
+            const btn = document.getElementById('aweberConnectBtn');
+            const pin = sessionStorage.getItem('staffPin');
+            if (!pin) {
+                statusEl.textContent = 'Session expired — please log in again.';
+                return;
+            }
+
+            btn.disabled = true;
+            try {
+                const res = await fetch(`${API_URL}/aweber/connect`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pin })
+                });
+                const data = await res.json();
+                if (data.url) {
+                    window.location.href = data.url;
+                    return;
+                }
+                statusEl.textContent = `Error: ${data.error || 'Unknown error'}`;
+            } catch (e) {
+                statusEl.textContent = 'Network error — check your connection.';
+            }
+            btn.disabled = false;
+        }
+
+        // ─────────────────────────────────────────────────────────
 
         function logout() {
             sessionStorage.clear();

@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const crypto = require('crypto');
 const { Pool } = require('pg');
 
 const app = express();
@@ -28,6 +29,110 @@ const pool = new Pool({
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000
 });
+
+// AWeber setup — new signups who check the email box are added to the AWeber list.
+// Staff connect once from the staff dashboard; tokens live in the aweber_connection table and refresh automatically.
+const AWEBER_AUTH_URL = 'https://auth.aweber.com/oauth2';
+const AWEBER_API_URL = 'https://api.aweber.com/1.0';
+const AWEBER_SCOPES = 'account.read list.read subscriber.read subscriber.write';
+const AWEBER_LIST_NAME = process.env.AWEBER_LIST_NAME || 'Web 2.0 Business Center Rewards Club';
+const AWEBER_REDIRECT_URI = process.env.AWEBER_REDIRECT_URI || 'https://loyalty-program-app-xb1v.onrender.com/api/aweber/callback';
+
+function aweberConfigured() {
+    return !!(process.env.AWEBER_CLIENT_ID && process.env.AWEBER_CLIENT_SECRET);
+}
+
+async function aweberTokenRequest(params) {
+    const basic = Buffer.from(`${process.env.AWEBER_CLIENT_ID.trim()}:${process.env.AWEBER_CLIENT_SECRET.trim()}`).toString('base64');
+    const res = await fetch(`${AWEBER_AUTH_URL}/token`, {
+        method: 'POST',
+        headers: { 'Authorization': `Basic ${basic}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(params)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.access_token) {
+        throw new Error(`AWeber token error ${res.status}: ${data.error_description || data.error || 'no access token'}`);
+    }
+    return data;
+}
+
+async function saveAweberTokens(tokens) {
+    const expiresAt = new Date(Date.now() + (tokens.expires_in || 7200) * 1000);
+    await pool.query(
+        `UPDATE aweber_connection
+         SET access_token = $1, refresh_token = COALESCE($2, refresh_token), expires_at = $3, updated_at = NOW()
+         WHERE id = 1`,
+        [tokens.access_token, tokens.refresh_token || null, expiresAt]
+    );
+}
+
+async function aweberApi(accessToken, urlPath, options = {}) {
+    const res = await fetch(`${AWEBER_API_URL}${urlPath}`, {
+        ...options,
+        headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Accept': 'application/json',
+            ...(options.body ? { 'Content-Type': 'application/json' } : {})
+        }
+    });
+    const text = await res.text();
+    let data = {};
+    try { data = text ? JSON.parse(text) : {}; } catch (e) { data = { raw: text }; }
+    return { ok: res.ok, status: res.status, data };
+}
+
+// Returns the connection row with a fresh access token, or null if not connected yet.
+// Refreshes are shared so two signups at once don't both spend the same refresh token.
+let aweberRefreshPromise = null;
+async function getAweberConnection() {
+    const loadRow = async () => (await pool.query('SELECT * FROM aweber_connection WHERE id = 1')).rows[0];
+    const conn = await loadRow();
+    if (!conn || !conn.refresh_token || !conn.list_id) return null;
+    if (conn.access_token && new Date(conn.expires_at) > new Date(Date.now() + 60000)) return conn;
+
+    if (!aweberRefreshPromise) {
+        aweberRefreshPromise = aweberTokenRequest({ grant_type: 'refresh_token', refresh_token: conn.refresh_token })
+            .then(saveAweberTokens)
+            .finally(() => { aweberRefreshPromise = null; });
+    }
+    await aweberRefreshPromise;
+    return loadRow();
+}
+
+async function addToAweber(customer) {
+    if (!aweberConfigured()) {
+        console.log('[AWeber skipped - not configured]', customer.email);
+        return;
+    }
+    try {
+        const conn = await getAweberConnection();
+        if (!conn) {
+            console.log('[AWeber skipped - not connected yet]', customer.email);
+            return;
+        }
+        const { ok, status, data } = await aweberApi(
+            conn.access_token,
+            `/accounts/${conn.account_id}/lists/${conn.list_id}/subscribers`,
+            {
+                method: 'POST',
+                body: JSON.stringify({
+                    email: customer.email,
+                    name: `${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
+                    tags: ['rewards-kiosk']
+                })
+            }
+        );
+        const alreadySubscribed = status === 400 && /already subscribed/i.test(JSON.stringify(data));
+        if (!ok && !alreadySubscribed) {
+            console.error('[AWeber error]', status, JSON.stringify(data));
+            return;
+        }
+        await pool.query('UPDATE customers SET aweber_added_at = NOW() WHERE id = $1', [customer.id]);
+        console.log(`[AWeber] ${alreadySubscribed ? 'already on list' : 'added'}: ${customer.email}`);
+    } catch (err) {
+        console.error('[AWeber error]', err.message);
+    }
+}
 
 // Initialize database tables
 async function initializeDatabase() {
@@ -150,6 +255,27 @@ async function initializeDatabase() {
             )
         `);
 
+        // Email marketing opt-in (unchecked by default at the kiosk) and when the customer was sent to AWeber
+        await client.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS email_consent BOOLEAN DEFAULT FALSE`);
+        await client.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS aweber_added_at TIMESTAMP`);
+
+        // Single-row table holding the AWeber connection (tokens are never sent to the browser)
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS aweber_connection (
+                id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+                access_token TEXT,
+                refresh_token TEXT,
+                expires_at TIMESTAMPTZ,
+                account_id VARCHAR(50),
+                list_id VARCHAR(50),
+                list_name VARCHAR(255),
+                oauth_state VARCHAR(100),
+                connected_at TIMESTAMPTZ,
+                updated_at TIMESTAMPTZ DEFAULT NOW()
+            )
+        `);
+        await client.query(`INSERT INTO aweber_connection (id) VALUES (1) ON CONFLICT (id) DO NOTHING`);
+
         console.log('Database tables initialized successfully');
     } catch (error) {
         console.error('Database initialization error:', error);
@@ -180,7 +306,7 @@ app.get('/api/health', async (req, res) => {
 
 // Customer registration
 app.post('/api/customers/register', async (req, res) => {
-    const { firstName, lastName, email, phoneNumber, referredBy } = req.body;
+    const { firstName, lastName, email, phoneNumber, referredBy, emailConsent } = req.body;
 
     if (!firstName || !lastName || !email || !phoneNumber) {
         return res.status(400).json({ error: 'First name, last name, email, and phone number are required' });
@@ -233,11 +359,16 @@ app.post('/api/customers/register', async (req, res) => {
 
         // Create new customer
         const result = await pool.query(
-            `INSERT INTO customers (first_name, last_name, email, phone_number, total_dropoffs, rewards_redeemed, referred_by)
-             VALUES ($1, $2, $3, $4, 0, 0, $5)
+            `INSERT INTO customers (first_name, last_name, email, phone_number, total_dropoffs, rewards_redeemed, referred_by, email_consent)
+             VALUES ($1, $2, $3, $4, 0, 0, $5, $6)
              RETURNING *`,
-            [firstName, lastName, email, cleanPhone, referredBy || null]
+            [firstName, lastName, email, cleanPhone, referredBy || null, emailConsent === true]
         );
+
+        // Add to the AWeber email list only if they opted in (not awaited so the kiosk isn't slowed down)
+        if (result.rows[0].email_consent) {
+            addToAweber(result.rows[0]);
+        }
 
         res.json({
             success: true,
@@ -945,6 +1076,102 @@ app.get('/api/analytics/referrals-by/:name', async (req, res) => {
     } catch (error) {
         console.error('Referrals by name error:', error);
         res.status(500).json({ error: 'Failed to fetch referrals', details: error.message });
+    }
+});
+
+// AWeber connection status for the staff dashboard (no tokens returned)
+app.get('/api/aweber/status', async (req, res) => {
+    try {
+        const conn = (await pool.query('SELECT list_name, list_id, refresh_token, connected_at FROM aweber_connection WHERE id = 1')).rows[0] || {};
+        const added = await pool.query('SELECT COUNT(*) FROM customers WHERE aweber_added_at IS NOT NULL');
+        res.json({
+            configured: aweberConfigured(),
+            connected: !!(conn.refresh_token && conn.list_id),
+            listName: conn.list_name || AWEBER_LIST_NAME,
+            connectedAt: conn.connected_at || null,
+            addedCount: parseInt(added.rows[0].count, 10)
+        });
+    } catch (error) {
+        console.error('AWeber status error:', error);
+        res.status(500).json({ error: 'Failed to get AWeber status' });
+    }
+});
+
+// Start the one-time AWeber connection (any valid staff PIN) — returns the AWeber login URL to send the browser to
+app.post('/api/aweber/connect', async (req, res) => {
+    const { pin } = req.body;
+    if (!pin) {
+        return res.status(401).json({ error: 'Staff PIN is required' });
+    }
+    try {
+        const staffCheck = await pool.query('SELECT id FROM staff WHERE pin = $1', [pin]);
+        if (staffCheck.rows.length === 0) {
+            return res.status(403).json({ error: 'Invalid staff PIN' });
+        }
+        if (!aweberConfigured()) {
+            return res.status(503).json({ error: 'AWeber is not configured (AWEBER_CLIENT_ID / AWEBER_CLIENT_SECRET missing on Render)' });
+        }
+
+        const state = crypto.randomBytes(16).toString('hex');
+        await pool.query('UPDATE aweber_connection SET oauth_state = $1 WHERE id = 1', [state]);
+        const params = new URLSearchParams({
+            response_type: 'code',
+            client_id: process.env.AWEBER_CLIENT_ID.trim(),
+            redirect_uri: AWEBER_REDIRECT_URI,
+            scope: AWEBER_SCOPES,
+            state
+        });
+        res.json({ url: `${AWEBER_AUTH_URL}/authorize?${params}` });
+    } catch (error) {
+        console.error('AWeber connect error:', error);
+        res.status(500).json({ error: 'Failed to start AWeber connection' });
+    }
+});
+
+// AWeber sends the browser back here after you click Allow
+app.get('/api/aweber/callback', async (req, res) => {
+    const backTo = (status, reason) =>
+        res.redirect(`/staff-dashboard.html?aweber=${status}${reason ? `&reason=${encodeURIComponent(reason)}` : ''}`);
+    const { code, state, error, error_description } = req.query;
+
+    if (error) {
+        return backTo('error', error_description || error);
+    }
+
+    try {
+        const conn = (await pool.query('SELECT oauth_state FROM aweber_connection WHERE id = 1')).rows[0];
+        if (!code || !state || !conn || conn.oauth_state !== state) {
+            return backTo('error', 'Connection link expired. Please click Connect AWeber again.');
+        }
+        await pool.query('UPDATE aweber_connection SET oauth_state = NULL WHERE id = 1');
+
+        const tokens = await aweberTokenRequest({ grant_type: 'authorization_code', code, redirect_uri: AWEBER_REDIRECT_URI });
+        await saveAweberTokens(tokens);
+
+        const accounts = await aweberApi(tokens.access_token, '/accounts');
+        const accountId = accounts.ok && accounts.data.entries && accounts.data.entries[0] && accounts.data.entries[0].id;
+        if (!accountId) {
+            console.error('AWeber accounts error:', accounts.status, JSON.stringify(accounts.data));
+            return backTo('error', 'Could not read your AWeber account.');
+        }
+
+        const lists = await aweberApi(tokens.access_token, `/accounts/${accountId}/lists?ws.size=100`);
+        const wanted = AWEBER_LIST_NAME.trim().toLowerCase();
+        const list = (lists.data.entries || []).find(l => (l.name || '').trim().toLowerCase() === wanted);
+        await pool.query(
+            `UPDATE aweber_connection SET account_id = $1, list_id = $2, list_name = $3, connected_at = NOW() WHERE id = 1`,
+            [String(accountId), list ? String(list.id) : null, list ? list.name : null]
+        );
+        if (!list) {
+            const found = (lists.data.entries || []).map(l => l.name).join(', ') || 'none';
+            return backTo('error', `Couldn't find a list named "${AWEBER_LIST_NAME}". Lists found: ${found}`);
+        }
+
+        console.log(`[AWeber] connected to list "${list.name}" (${list.id})`);
+        backTo('connected');
+    } catch (err) {
+        console.error('AWeber callback error:', err.message);
+        backTo('error', err.message);
     }
 });
 

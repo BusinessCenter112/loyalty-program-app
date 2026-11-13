@@ -2084,7 +2084,7 @@
             <div class="consent-group">
                 <label class="consent-label">
                     <input type="checkbox" id="emailConsent">
-                    <span>By providing your email address you consent to receive news and updates about our business via email. You can unsubscribe at any time.</span>
+                    <span>Email me deals and updates from Web 2.0 Business Center (optional). You can unsubscribe at any time.</span>
                 </label>
             </div>
 
@@ -2476,10 +2476,7 @@
                 return;
             }
 
-            if (!document.getElementById('emailConsent').checked) {
-                showError('registerError', 'Please check the email consent box to continue');
-                return;
-            }
+            const emailConsent = document.getElementById('emailConsent').checked;
 
             // Unlock audio for iOS (must happen during user interaction)
             const welcomeSound = document.getElementById('welcomeSound');
@@ -2505,7 +2502,8 @@
                         lastName,
                         email,
                         phoneNumber: currentPhone,
-                        referredBy: referredBy || null
+                        referredBy: referredBy || null,
+                        emailConsent
                     })
                 });
 
