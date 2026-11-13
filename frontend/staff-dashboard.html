@@ -273,6 +273,84 @@
             transform: translateY(-1px);
         }
 
+        /* ── Recent Activity ── */
+        .recent-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 800px) {
+            .recent-grid { grid-template-columns: 1fr; }
+        }
+
+        .recent-col h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 4px;
+        }
+
+        .recent-col .recent-sub {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .recent-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .recent-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: #f8f9fc;
+            border: 1px solid #e8eaf0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+        }
+
+        .recent-row:hover,
+        .recent-row.selected {
+            background: #eef2ff;
+            border-color: #4169E1;
+        }
+
+        .recent-row.reward { border-left: 4px solid #f59e0b; }
+        .recent-row.signup { border-left: 4px solid #10b981; }
+
+        .recent-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #111;
+        }
+
+        .recent-detail {
+            font-size: 12px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .recent-when {
+            font-size: 12px;
+            font-weight: 600;
+            color: #4169E1;
+            white-space: nowrap;
+            text-align: right;
+        }
+
+        .recent-empty {
+            font-size: 13px;
+            color: #999;
+            padding: 10px 0;
+        }
+
         .results-section {
             background: white;
             border: 1px solid #e8eaf0;
@@ -1079,11 +1157,19 @@
     <!-- ── CUSTOMER LOOKUP TAB ── -->
     <div id="tab-customers" class="tab-panel">
 
-        <div class="search-section" id="aweberSection">
-            <h2>📧 AWeber Email List</h2>
-            <div id="aweberStatus" style="font-size: 14px; color: #555; margin-bottom: 12px;">Checking connection…</div>
-            <div class="search-box">
-                <button id="aweberConnectBtn" onclick="connectAweber()" style="display: none;">🔗 Connect AWeber</button>
+        <div class="search-section" id="recentSection">
+            <h2>Recent Activity</h2>
+            <div class="recent-grid">
+                <div class="recent-col">
+                    <h3>🎉 Reward Ready</h3>
+                    <div class="recent-sub" id="rewardReadySub">Customers with an unclaimed reward, most recent visit first</div>
+                    <div class="recent-list" id="rewardReadyList"><div class="recent-empty">Loading…</div></div>
+                </div>
+                <div class="recent-col">
+                    <h3>🆕 New Sign-ups</h3>
+                    <div class="recent-sub">Newest members first</div>
+                    <div class="recent-list" id="newSignupsList"><div class="recent-empty">Loading…</div></div>
+                </div>
             </div>
         </div>
 
@@ -1182,6 +1268,14 @@
         <div class="no-results" id="noResults">No customers found. Try a different search.</div>
         </div><!-- /results-section -->
 
+        <div class="search-section" id="aweberSection" style="margin-top: 20px;">
+            <h2>📧 AWeber Email List</h2>
+            <div id="aweberStatus" style="font-size: 14px; color: #555; margin-bottom: 12px;">Checking connection…</div>
+            <div class="search-box">
+                <button id="aweberConnectBtn" onclick="connectAweber()" style="display: none;">🔗 Connect AWeber</button>
+            </div>
+        </div>
+
     </div><!-- /tab-customers -->
 
     <script>
@@ -1215,6 +1309,9 @@
             loadAweberStatus();
             // Coming back from AWeber's connect page: jump straight to the tab with the result
             if (new URLSearchParams(window.location.search).get('aweber')) switchTab('customers');
+
+            loadRecentActivity();
+            setInterval(loadRecentActivity, 60000);
 
             // Set today's date as default
             document.getElementById('date').valueAsDate = new Date();
@@ -1756,6 +1853,7 @@
                     document.getElementById('quantity').value = 1;
 
                     // Refresh search results, stats, and analytics
+                    loadRecentActivity();
                     searchCustomers();
                     loadStats();
                     loadAnalytics();
@@ -1956,6 +2054,8 @@
 
                     // Show success message
                     const successMsg = document.getElementById('successMessage');
+                    loadRecentActivity();
+
                     successMsg.textContent = claimed
                         ? `${tier.charAt(0).toUpperCase() + tier.slice(1)} reward marked as claimed`
                         : `${tier.charAt(0).toUpperCase() + tier.slice(1)} reward reset`;
@@ -2063,6 +2163,94 @@
                 }
             } catch (error) {
                 alert('Unable to delete customer. Please try again.');
+            }
+        }
+
+        // ── Recent Activity ───────────────────────────────────────
+
+        function escapeHtml(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function formatPhoneDisplay(phone) {
+            if (!phone || phone.length !== 10) return phone || '';
+            return `(${phone.slice(0,3)}) ${phone.slice(3,6)}-${phone.slice(6)}`;
+        }
+
+        // "Today 2:14 PM", "Yesterday 9:05 AM", or "Nov 10"
+        function formatWhen(iso) {
+            if (!iso) return '';
+            const d = new Date(iso);
+            const time = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            const startOfToday = new Date();
+            startOfToday.setHours(0, 0, 0, 0);
+            const startOfYesterday = new Date(startOfToday.getTime() - 86400000);
+            if (d >= startOfToday) return `Today ${time}`;
+            if (d >= startOfYesterday) return `Yesterday ${time}`;
+            const sameYear = d.getFullYear() === startOfToday.getFullYear();
+            return d.toLocaleDateString([], sameYear ? { month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function readyRewardNames(customer) {
+            const names = [];
+            if (customer.total_dropoffs >= 10 && !customer.bronze_reward_claimed) names.push('Bronze');
+            if (customer.total_dropoffs >= 25 && !customer.silver_reward_claimed) names.push('Silver');
+            if (customer.total_dropoffs >= 50 && !customer.gold_reward_claimed) names.push('Gold');
+            return names;
+        }
+
+        function renderRecentList(elId, customers, kind) {
+            const list = document.getElementById(elId);
+            list.innerHTML = '';
+            if (!customers.length) {
+                list.innerHTML = `<div class="recent-empty">${kind === 'reward' ? 'No unclaimed rewards right now.' : 'No sign-ups yet.'}</div>`;
+                return;
+            }
+            customers.forEach(customer => {
+                const row = document.createElement('div');
+                row.className = `recent-row ${kind}`;
+                const detail = kind === 'reward'
+                    ? `${readyRewardNames(customer).join(' + ')} reward ready`
+                    : formatPhoneDisplay(customer.phone_number);
+                const when = kind === 'reward'
+                    ? (customer.last_visit ? `Last visit<br>${formatWhen(customer.last_visit)}` : '')
+                    : `Joined<br>${formatWhen(customer.created_at)}`;
+                row.innerHTML = `
+                    <div>
+                        <div class="recent-name">${escapeHtml(customer.first_name)} ${escapeHtml(customer.last_name)}</div>
+                        <div class="recent-detail">${escapeHtml(detail)}</div>
+                    </div>
+                    <div class="recent-when">${when}</div>
+                `;
+                row.onclick = async () => {
+                    document.querySelectorAll('.recent-row').forEach(r => r.classList.remove('selected'));
+                    await selectCustomer(customer);
+                    row.classList.add('selected');
+                    document.getElementById('customerDetail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                };
+                list.appendChild(row);
+            });
+        }
+
+        async function loadRecentActivity() {
+            try {
+                const res = await fetch(`${API_URL}/recent-activity`);
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed');
+                renderRecentList('rewardReadyList', data.rewardReady, 'reward');
+                renderRecentList('newSignupsList', data.newSignups, 'signup');
+                const extra = data.rewardReadyTotal > data.rewardReady.length
+                    ? ` (showing ${data.rewardReady.length} of ${data.rewardReadyTotal})`
+                    : '';
+                document.getElementById('rewardReadySub').textContent =
+                    `Customers with an unclaimed reward, most recent visit first${extra}`;
+            } catch (e) {
+                console.error('Recent activity error:', e);
+                ['rewardReadyList', 'newSignupsList'].forEach(id => {
+                    document.getElementById(id).innerHTML = '<div class="recent-empty">Could not load recent activity.</div>';
+                });
             }
         }
 

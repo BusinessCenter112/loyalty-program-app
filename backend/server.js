@@ -436,6 +436,42 @@ app.get('/api/customers/search', async (req, res) => {
     }
 });
 
+// Recent activity for the staff dashboard:
+//  - rewardReady: customers with an unclaimed tier reward, most recent visit first
+//  - newSignups: newest customers first
+app.get('/api/recent-activity', async (req, res) => {
+    try {
+        const readyWhere = `
+            (c.total_dropoffs >= 10 AND NOT COALESCE(c.bronze_reward_claimed, FALSE))
+            OR (c.total_dropoffs >= 25 AND NOT COALESCE(c.silver_reward_claimed, FALSE))
+            OR (c.total_dropoffs >= 50 AND NOT COALESCE(c.gold_reward_claimed, FALSE))`;
+
+        const [ready, readyCount, signups] = await Promise.all([
+            pool.query(`
+                SELECT c.*, lv.last_visit
+                FROM customers c
+                LEFT JOIN (
+                    SELECT customer_id, MAX(created_at) AS last_visit
+                    FROM dropoffs GROUP BY customer_id
+                ) lv ON lv.customer_id = c.id
+                WHERE ${readyWhere}
+                ORDER BY lv.last_visit DESC NULLS LAST
+                LIMIT 10`),
+            pool.query(`SELECT COUNT(*) FROM customers c WHERE ${readyWhere}`),
+            pool.query(`SELECT * FROM customers ORDER BY created_at DESC LIMIT 10`)
+        ]);
+
+        res.json({
+            rewardReady: ready.rows,
+            rewardReadyTotal: parseInt(readyCount.rows[0].count, 10),
+            newSignups: signups.rows
+        });
+    } catch (error) {
+        console.error('Recent activity error:', error);
+        res.status(500).json({ error: 'Failed to load recent activity' });
+    }
+});
+
 // Look up customer by phone number
 app.get('/api/customers/phone/:phone', async (req, res) => {
     const { phone } = req.params;
