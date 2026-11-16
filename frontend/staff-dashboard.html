@@ -1008,6 +1008,23 @@
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <!-- Date picker (replaces the browser's built-in one so the numbers can be big and bold) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <style>
+        .flatpickr-calendar { width: 340px; padding: 6px; border-radius: 12px; box-shadow: 0 10px 30px rgba(11,21,53,0.18); }
+        .flatpickr-calendar .flatpickr-days, .flatpickr-calendar .dayContainer { width: 328px; min-width: 328px; max-width: 328px; }
+        .flatpickr-current-month { font-size: 20px; font-weight: 800; }
+        .flatpickr-current-month .flatpickr-monthDropdown-months { font-weight: 800; }
+        .flatpickr-current-month input.cur-year { font-weight: 800; }
+        span.flatpickr-weekday { font-size: 13px; font-weight: 700; color: #555; }
+        .flatpickr-day { font-size: 18px; font-weight: 700; color: #111; max-width: 46px; height: 44px; line-height: 44px; }
+        .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay { color: #c4c8d4; font-weight: 500; }
+        .flatpickr-day.today { border-color: #4169E1; border-width: 2px; }
+        .flatpickr-day.selected, .flatpickr-day.selected:hover { background: #4169E1; border-color: #4169E1; color: #fff; }
+        .flatpickr-day:hover { background: #e8edfc; border-color: #e8edfc; }
+        .flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month { padding: 12px; }
+    </style>
 </head>
 <body>
     <!-- Audio Elements -->
@@ -1266,7 +1283,7 @@
 
             <div class="form-group">
                 <label for="date">Date</label>
-                <input type="date" id="date">
+                <input type="text" id="date" placeholder="Pick a date">
             </div>
 
             <div class="form-actions">
@@ -1332,7 +1349,21 @@
             setInterval(loadRecentActivity, 60000);
 
             // Set today's date as default
-            document.getElementById('date').valueAsDate = new Date();
+            // (value stays YYYY-MM-DD for the API; staff see "Monday, November 16, 2026")
+            if (window.flatpickr) {
+                flatpickr('#date', {
+                    dateFormat: 'Y-m-d',
+                    altInput: true,
+                    altFormat: 'l, F j, Y',
+                    defaultDate: new Date(),
+                    disableMobile: true
+                });
+            } else {
+                // Fallback if the date picker library fails to load
+                const d = document.getElementById('date');
+                d.type = 'date';
+                d.valueAsDate = new Date();
+            }
 
             // Live search as you type (with debounce)
             document.getElementById('searchInput').addEventListener('input', (e) => {
