@@ -239,6 +239,12 @@ async function initializeDatabase() {
             console.log('Staff names updated');
         }
 
+        // Staff added after launch (safe to run every startup)
+        await client.query(`
+            INSERT INTO staff (pin, name) VALUES ('2599', 'Tom Buck')
+            ON CONFLICT (pin) DO UPDATE SET name = EXCLUDED.name
+        `);
+
         // Create index on phone_number for faster lookups
         await client.query(`
             CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone_number)
