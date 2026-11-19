@@ -2051,7 +2051,7 @@
             <button class="raffle-spin-btn" id="raffleContinueBtn">Continue</button>
         </div>
         <div class="raffle-fine">No purchase necessary. Open to Main Street Rewards members. One spin per day.
-            Winners are drawn at random throughout December. Winners are contacted by email to choose their gift card.</div>
+            Winners are drawn at random throughout December. Winners choose their gift card in store and receive it by email.</div>
     </div>
 
     <!-- ========== ATTRACT / IDLE SCREEN ========== -->
@@ -2529,14 +2529,14 @@
                     const body = document.getElementById('raffleResultBody');
                     if (result.won) {
                         title.textContent = '🎉 YOU WON! 🎉';
-                        body.innerHTML = `Congratulations${name ? ', ' + name.replace(/</g, '&lt;') : ''}! You won a <strong>$25 gift card of your choice</strong>.<br>We'll email you so you can pick which one you'd like.`
+                        body.innerHTML = `Congratulations${name ? ', ' + name.replace(/</g, '&lt;') : ''}! You won a <strong>$25 gift card of your choice</strong>.<br>Let us know which gift card you'd like, and we'll email it to you!`
                             + (result.preview ? '<br><em>(Preview — not a real win)</em>' : '');
                         resultBox.className = 'raffle-result win show';
                         playTierChime('gold');
                         spawnGoldConfetti(document.getElementById('raffleConfetti'), 120);
                     } else {
                         title.textContent = 'Not this time!';
-                        body.innerHTML = 'Check in again on your next visit for another spin.<br>More winners all December long!'
+                        body.innerHTML = 'Check in on another day for another spin.<br>More winners all December long!'
                             + (result.preview ? '<br><em>(Preview)</em>' : '');
                         resultBox.className = 'raffle-result show';
                     }
