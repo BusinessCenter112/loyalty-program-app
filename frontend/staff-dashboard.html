@@ -351,6 +351,25 @@
             padding: 10px 0;
         }
 
+        /* December raffle */
+        .raffle-weeks { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 12px; }
+        .raffle-week { border: 1px solid #e3e6ef; border-radius: 10px; padding: 14px; background: #fafbfe; }
+        .raffle-week.live { border-color: #4169E1; box-shadow: 0 0 0 2px rgba(65,105,225,0.15); }
+        .raffle-week.has-winner { border-color: #f0b429; background: #fffaf0; }
+        .raffle-week-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+        .raffle-week-title { font-weight: 700; color: #111; }
+        .raffle-pill { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #e8eaf0; color: #555; white-space: nowrap; }
+        .raffle-pill.live { background: #4169E1; color: #fff; }
+        .raffle-pill.won { background: #f0b429; color: #3a2a00; }
+        .raffle-pill.ended { background: #fde2e2; color: #a12; }
+        .raffle-dates { font-size: 13px; color: #777; margin-bottom: 10px; }
+        .raffle-winner-name { font-size: 17px; font-weight: 800; color: #111; }
+        .raffle-winner-contact { font-size: 13px; color: #444; line-height: 1.5; margin: 2px 0 10px; word-break: break-word; }
+        .raffle-week input[type="text"] { width: 100%; padding: 8px 10px; border: 1px solid #ccd2e0; border-radius: 6px; font-size: 14px; margin-bottom: 8px; }
+        .raffle-week label.raffle-sent { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #333; cursor: pointer; }
+        .raffle-week button { background: #4169E1; color: #fff; border: none; border-radius: 6px; padding: 8px 14px; font-weight: 600; cursor: pointer; }
+        .raffle-note { font-size: 13px; color: #666; }
+
         .recent-more {
             width: 100%;
             margin-top: 8px;
@@ -1173,6 +1192,12 @@
     <!-- ── CUSTOMER LOOKUP TAB ── -->
     <div id="tab-customers" class="tab-panel">
 
+        <div class="search-section" id="raffleSection">
+            <h2>🎁 December Gift Card Raffle</h2>
+            <div class="recent-sub" id="raffleSub">One $25 gift card winner per week. Members get one spin per day at the kiosk. No purchase necessary.</div>
+            <div id="raffleWeeks"><div class="recent-empty">Loading…</div></div>
+        </div>
+
         <div class="search-section" id="recentSection">
             <h2>Recent Activity</h2>
             <div class="recent-grid">
@@ -1330,6 +1355,8 @@
 
             loadRecentActivity();
             setInterval(loadRecentActivity, 60000);
+            loadRaffle();
+            setInterval(loadRaffle, 60000);
 
             // Set today's date as default
             document.getElementById('date').valueAsDate = new Date();
@@ -2307,6 +2334,110 @@
                 ['rewardReadyList', 'newSignupsList'].forEach(id => {
                     document.getElementById(id).innerHTML = '<div class="recent-empty">Could not load recent activity.</div>';
                 });
+            }
+        }
+
+        // ── December Gift Card Raffle ─────────────────────────────
+
+        function formatRaffleDates(w) {
+            const fmt = s => new Date(`${s}T12:00:00`).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+            return `${fmt(w.start)} – ${fmt(w.end)}`;
+        }
+
+        async function loadRaffle() {
+            const box = document.getElementById('raffleWeeks');
+            // Don't wipe out something staff are typing into
+            if (box.contains(document.activeElement) && document.activeElement.tagName === 'INPUT') return;
+            try {
+                const res = await fetch(`${API_URL}/raffle/status`);
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed');
+
+                const lastWeek = data.weeks[data.weeks.length - 1];
+                if (data.today > lastWeek.end && data.weeks.every(w => w.winner && w.winner.prize_sent)) {
+                    document.getElementById('raffleSub').textContent = 'The December raffle is finished — all 4 gift cards have been sent. 🎉';
+                }
+
+                box.className = 'raffle-weeks';
+                box.innerHTML = data.weeks.map(w => {
+                    const win = w.winner;
+                    let pill = '<span class="raffle-pill">Upcoming</span>';
+                    if (win) pill = '<span class="raffle-pill won">Winner!</span>';
+                    else if (w.status === 'live') pill = '<span class="raffle-pill live">Live now</span>';
+                    else if (w.status === 'ended') pill = '<span class="raffle-pill ended">Needs a winner</span>';
+
+                    let body;
+                    if (win) {
+                        const how = win.method === 'draw' ? 'Drawn by staff' : 'Won on the wheel';
+                        body = `
+                            <div class="raffle-winner-name">${escapeHtml(win.first_name)} ${escapeHtml(win.last_name)}</div>
+                            <div class="raffle-winner-contact">
+                                ${escapeHtml(win.email || 'No email on file')}<br>
+                                ${escapeHtml(formatPhoneDisplay(win.phone_number))}<br>
+                                <span style="color:#888;">${how} · ${escapeHtml(formatWhen(win.won_at))}</span>
+                            </div>
+                            <input type="text" placeholder="Gift card they picked (e.g. Amazon)" value="${escapeHtml(win.prize_choice || '')}"
+                                onchange="updateRaffleWinner(${w.week}, { prizeChoice: this.value })">
+                            <label class="raffle-sent">
+                                <input type="checkbox" ${win.prize_sent ? 'checked' : ''}
+                                    onchange="updateRaffleWinner(${w.week}, { prizeSent: this.checked })">
+                                Gift card emailed
+                            </label>`;
+                    } else if (w.status === 'ended') {
+                        body = `
+                            <div class="raffle-note" style="margin-bottom:10px;">This week ended without a wheel winner. ${w.people
+                                ? `Draw one at random from the ${w.people} member${w.people === 1 ? '' : 's'} who spun.`
+                                : 'Nobody spun this week, so the draw picks from all members.'}</div>
+                            <button onclick="drawRaffleWinner(${w.week})">🎲 Draw winner</button>`;
+                    } else if (w.status === 'live') {
+                        body = `<div class="raffle-note">${w.spins} spin${w.spins === 1 ? '' : 's'} so far — no winner yet. Odds go up as the week goes on.</div>`;
+                    } else {
+                        body = '<div class="raffle-note">Starts automatically.</div>';
+                    }
+
+                    const cls = ['raffle-week', w.status, win ? 'has-winner' : ''].join(' ');
+                    return `
+                        <div class="${cls}">
+                            <div class="raffle-week-head"><span class="raffle-week-title">Week ${w.week}</span>${pill}</div>
+                            <div class="raffle-dates">${formatRaffleDates(w)}${w.spins && win ? ` · ${w.spins} spins` : ''}</div>
+                            ${body}
+                        </div>`;
+                }).join('');
+            } catch (e) {
+                console.error('Raffle error:', e);
+                box.innerHTML = '<div class="recent-empty">Could not load the raffle.</div>';
+            }
+        }
+
+        async function updateRaffleWinner(week, changes) {
+            try {
+                const res = await fetch(`${API_URL}/raffle/winners/${week}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(changes)
+                });
+                if (!res.ok) throw new Error((await res.json()).error || 'Failed');
+                document.activeElement.blur();
+                loadRaffle();
+            } catch (e) {
+                alert('Could not save: ' + e.message);
+            }
+        }
+
+        async function drawRaffleWinner(week) {
+            if (!confirm(`Draw a random winner for Week ${week}?`)) return;
+            try {
+                const res = await fetch(`${API_URL}/raffle/draw`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pin: sessionStorage.getItem('staffPin'), week })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed');
+                alert(`🎉 Week ${week} winner: ${data.winner.first_name} ${data.winner.last_name}`);
+                loadRaffle();
+            } catch (e) {
+                alert('Could not draw a winner: ' + e.message);
             }
         }
 

@@ -282,6 +282,35 @@ async function initializeDatabase() {
         `);
         await client.query(`INSERT INTO aweber_connection (id) VALUES (1) ON CONFLICT (id) DO NOTHING`);
 
+        // December gift card raffle — one spin per customer per day, one winner per week.
+        // Winner rows keep a copy of name/email/phone so they survive if the customer is deleted.
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS raffle_spins (
+                id SERIAL PRIMARY KEY,
+                customer_id INTEGER REFERENCES customers(id) ON DELETE CASCADE,
+                week_number INTEGER NOT NULL,
+                spin_date DATE NOT NULL,
+                won BOOLEAN DEFAULT FALSE,
+                odds NUMERIC,
+                created_at TIMESTAMPTZ DEFAULT NOW(),
+                UNIQUE (customer_id, spin_date)
+            )
+        `);
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS raffle_winners (
+                week_number INTEGER PRIMARY KEY,
+                customer_id INTEGER REFERENCES customers(id) ON DELETE SET NULL,
+                first_name VARCHAR(255),
+                last_name VARCHAR(255),
+                email VARCHAR(255),
+                phone_number VARCHAR(20),
+                method VARCHAR(20) NOT NULL,
+                prize_choice VARCHAR(255),
+                prize_sent BOOLEAN DEFAULT FALSE,
+                won_at TIMESTAMPTZ DEFAULT NOW()
+            )
+        `);
+
         console.log('Database tables initialized successfully');
     } catch (error) {
         console.error('Database initialization error:', error);
@@ -1217,6 +1246,275 @@ app.get('/api/aweber/callback', async (req, res) => {
     } catch (err) {
         console.error('AWeber callback error:', err.message);
         backTo('error', err.message);
+    }
+});
+
+// ── December Gift Card Raffle ─────────────────────────────────
+// Every loyalty member who checks in at the kiosk during a raffle week gets one spin per day.
+// No purchase necessary — every spin has the same odds. Exactly one winner per week:
+//  - Each spin's odds are 1 ÷ (spins we still expect this week), based on the last 8 weeks of visits.
+//    Odds rise through the week; on the last day they reach 100% once the usual number of visitors is hit.
+//  - After someone wins, everyone else that week gets "not this time".
+//  - Each person can win only once all month.
+//  - If a week ends with no winner (e.g. closed early), staff click "Draw winner" on the dashboard,
+//    which picks randomly from everyone who spun that week.
+const RAFFLE_PRIZE = '$25 gift card';
+const RAFFLE_WEEKS = [
+    { week: 1, start: '2026-12-01', end: '2026-12-04' },
+    { week: 2, start: '2026-12-07', end: '2026-12-11' },
+    { week: 3, start: '2026-12-14', end: '2026-12-18' },
+    { week: 4, start: '2026-12-21', end: '2026-12-24' }
+];
+const RAFFLE_TZ = 'America/New_York';
+const RAFFLE_LOCK_ID = 7312026; // serializes spins so two at once can't both win
+
+// Today's date in the shop's time zone, as YYYY-MM-DD. RAFFLE_FAKE_DATE is for local testing only.
+function raffleToday() {
+    if (process.env.RAFFLE_FAKE_DATE) return process.env.RAFFLE_FAKE_DATE;
+    return new Intl.DateTimeFormat('en-CA', { timeZone: RAFFLE_TZ }).format(new Date());
+}
+
+function raffleWeekFor(dateStr) {
+    return RAFFLE_WEEKS.find(w => dateStr >= w.start && dateStr <= w.end) || null;
+}
+
+function addDays(dateStr, n) {
+    const d = new Date(`${dateStr}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + n);
+    return d.toISOString().slice(0, 10);
+}
+
+function dayOfWeek(dateStr) {
+    return new Date(`${dateStr}T00:00:00Z`).getUTCDay();
+}
+
+// Staff and test accounts can spin the wheel (handy for testing) but can never win or be drawn.
+// Excluded: any customer whose full name matches a staff login name, any customer with the word
+// "test" in their first or last name, and any customer ID listed in env RAFFLE_EXCLUDE_IDS (e.g. "212,305").
+// Use with a customers table aliased as "c".
+function raffleExcludedSql() {
+    const ids = (process.env.RAFFLE_EXCLUDE_IDS || '')
+        .split(',').map(s => parseInt(s.trim())).filter(n => Number.isInteger(n));
+    return `(c.first_name ~* '\\mtest\\M' OR c.last_name ~* '\\mtest\\M'
+        OR EXISTS (SELECT 1 FROM staff st
+                   WHERE LOWER(TRIM(st.name)) = LOWER(TRIM(c.first_name) || ' ' || TRIM(c.last_name)))
+        ${ids.length ? `OR c.id IN (${ids.join(',')})` : ''})`;
+}
+
+async function isRaffleExcluded(db, customerId) {
+    const r = await db.query(`SELECT ${raffleExcludedSql()} AS excluded FROM customers c WHERE c.id = $1`, [customerId]);
+    return r.rows.length > 0 && r.rows[0].excluded === true;
+}
+
+// Average customers per weekday over the 8 weeks before the raffle (at least 1 per day)
+async function raffleExpectedByWeekday(db) {
+    const start = addDays(RAFFLE_WEEKS[0].start, -56);
+    const result = await db.query(
+        `SELECT EXTRACT(DOW FROM date)::int AS dow, COUNT(DISTINCT (customer_id, date)) AS visits
+         FROM dropoffs WHERE date >= $1 AND date < $2 GROUP BY 1`,
+        [start, RAFFLE_WEEKS[0].start]
+    );
+    const expected = [1, 1, 1, 1, 1, 1, 1];
+    result.rows.forEach(r => { expected[r.dow] = Math.max(1, Number(r.visits) / 8); });
+    return expected;
+}
+
+// Kiosk asks this right after a visit is logged: should the wheel be shown? (Nothing is decided or saved yet.)
+app.get('/api/raffle/eligible', async (req, res) => {
+    if (req.query.preview === '1') return res.json({ active: true, prize: RAFFLE_PRIZE });
+    const week = raffleWeekFor(raffleToday());
+    const customerId = parseInt(req.query.customerId);
+    if (!week || !customerId) return res.json({ active: false });
+    try {
+        const recentVisit = (await pool.query(
+            `SELECT 1 FROM dropoffs WHERE customer_id = $1 AND created_at > NOW() - INTERVAL '15 minutes' LIMIT 1`,
+            [customerId]
+        )).rows.length > 0;
+        if (!recentVisit) return res.json({ active: false });
+        const spunToday = (await pool.query(
+            'SELECT 1 FROM raffle_spins WHERE customer_id = $1 AND spin_date = $2', [customerId, raffleToday()]
+        )).rows.length > 0;
+        res.json({ active: true, alreadySpunToday: spunToday, prize: RAFFLE_PRIZE });
+    } catch (error) {
+        console.error('Raffle eligible error:', error);
+        res.json({ active: false });
+    }
+});
+
+// Kiosk calls this when the customer taps/swipes the wheel. The server decides win/lose; the wheel just shows it.
+app.post('/api/raffle/spin', async (req, res) => {
+    const { customerId, preview } = req.body;
+
+    // Preview mode (kiosk opened with ?raffletest=1): shows the wheel with a random result, saves nothing
+    if (preview) {
+        return res.json({ active: true, preview: true, won: Math.random() < 0.34, prize: RAFFLE_PRIZE });
+    }
+
+    const today = raffleToday();
+    const week = raffleWeekFor(today);
+    if (!week) return res.json({ active: false });
+    if (!customerId) return res.status(400).json({ error: 'customerId is required' });
+
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        await client.query('SELECT pg_advisory_xact_lock($1)', [RAFFLE_LOCK_ID]);
+
+        // Only customers who just checked in can spin (generous window since the wheel waits for a tap)
+        const customer = (await client.query('SELECT * FROM customers WHERE id = $1', [parseInt(customerId)])).rows[0];
+        const recentVisit = customer && (await client.query(
+            `SELECT 1 FROM dropoffs WHERE customer_id = $1 AND created_at > NOW() - INTERVAL '60 minutes' LIMIT 1`,
+            [customer.id]
+        )).rows.length > 0;
+        if (!customer || !recentVisit) {
+            await client.query('ROLLBACK');
+            return res.json({ active: false });
+        }
+
+        // One spin per customer per day
+        const spin = await client.query(
+            `INSERT INTO raffle_spins (customer_id, week_number, spin_date) VALUES ($1, $2, $3)
+             ON CONFLICT (customer_id, spin_date) DO NOTHING RETURNING id`,
+            [customer.id, week.week, today]
+        );
+        if (spin.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.json({ active: true, alreadySpunToday: true, prize: RAFFLE_PRIZE });
+        }
+        const spinId = spin.rows[0].id;
+
+        const weekHasWinner = (await client.query('SELECT 1 FROM raffle_winners WHERE week_number = $1', [week.week])).rows.length > 0;
+        const alreadyWonBefore = (await client.query('SELECT 1 FROM raffle_winners WHERE customer_id = $1', [customer.id])).rows.length > 0;
+        const excluded = await isRaffleExcluded(client, customer.id); // staff/test accounts never win
+
+        let won = false;
+        let odds = 0;
+        if (!weekHasWinner && !alreadyWonBefore && !excluded) {
+            const expected = await raffleExpectedByWeekday(client);
+            const spinsBeforeToday = Number((await client.query(
+                'SELECT COUNT(*) FROM raffle_spins WHERE spin_date = $1 AND id <> $2', [today, spinId]
+            )).rows[0].count);
+            let remaining = Math.max(1, expected[dayOfWeek(today)] - spinsBeforeToday);
+            for (let d = addDays(today, 1); d <= week.end; d = addDays(d, 1)) {
+                remaining += expected[dayOfWeek(d)];
+            }
+            odds = 1 / remaining;
+            won = crypto.randomInt(1000000) < odds * 1000000;
+        }
+
+        await client.query('UPDATE raffle_spins SET won = $1, odds = $2 WHERE id = $3', [won, odds, spinId]);
+        if (won) {
+            await client.query(
+                `INSERT INTO raffle_winners (week_number, customer_id, first_name, last_name, email, phone_number, method)
+                 VALUES ($1, $2, $3, $4, $5, $6, 'wheel')`,
+                [week.week, customer.id, customer.first_name, customer.last_name, customer.email, customer.phone_number]
+            );
+            console.log(`[Raffle] Week ${week.week} WINNER: ${customer.first_name} ${customer.last_name} (odds ${(odds * 100).toFixed(1)}%)`);
+        }
+        await client.query('COMMIT');
+        res.json({ active: true, won, prize: RAFFLE_PRIZE });
+    } catch (error) {
+        await client.query('ROLLBACK').catch(() => {});
+        console.error('Raffle spin error:', error);
+        // Never block the kiosk — just skip the wheel
+        res.json({ active: false });
+    } finally {
+        client.release();
+    }
+});
+
+// Dashboard: each week's dates, status, spin count and winner
+app.get('/api/raffle/status', async (req, res) => {
+    try {
+        const today = raffleToday();
+        const winners = (await pool.query('SELECT * FROM raffle_winners')).rows;
+        const counts = (await pool.query(
+            'SELECT week_number, COUNT(*) AS spins, COUNT(DISTINCT customer_id) AS people FROM raffle_spins GROUP BY week_number'
+        )).rows;
+        const weeks = RAFFLE_WEEKS.map(w => {
+            const c = counts.find(r => r.week_number === w.week);
+            const winner = winners.find(r => r.week_number === w.week) || null;
+            const status = today < w.start ? 'upcoming' : today > w.end ? 'ended' : 'live';
+            return { ...w, status, spins: c ? Number(c.spins) : 0, people: c ? Number(c.people) : 0, winner };
+        });
+        res.json({ today, prize: RAFFLE_PRIZE, weeks });
+    } catch (error) {
+        console.error('Raffle status error:', error);
+        res.status(500).json({ error: 'Failed to load raffle status' });
+    }
+});
+
+// Backup: draw a winner for a finished week that ended without one (staff PIN required)
+app.post('/api/raffle/draw', async (req, res) => {
+    const { pin, week: weekNumber } = req.body;
+    const week = RAFFLE_WEEKS.find(w => w.week === parseInt(weekNumber));
+    if (!week) return res.status(400).json({ error: 'Unknown week' });
+
+    const client = await pool.connect();
+    try {
+        const staff = (await client.query('SELECT name FROM staff WHERE pin = $1', [pin || ''])).rows[0];
+        if (!staff) return res.status(403).json({ error: 'Invalid staff PIN — please log in again.' });
+        if (raffleToday() <= week.end) return res.status(400).json({ error: 'This week is not over yet.' });
+
+        await client.query('BEGIN');
+        await client.query('SELECT pg_advisory_xact_lock($1)', [RAFFLE_LOCK_ID]);
+        if ((await client.query('SELECT 1 FROM raffle_winners WHERE week_number = $1', [week.week])).rows.length) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ error: 'This week already has a winner.' });
+        }
+
+        // Everyone who spun that week (one entry each), minus anyone who already won and staff/test accounts
+        const pool1 = (await client.query(
+            `SELECT DISTINCT c.* FROM raffle_spins s JOIN customers c ON c.id = s.customer_id
+             WHERE s.week_number = $1 AND c.id NOT IN (SELECT customer_id FROM raffle_winners WHERE customer_id IS NOT NULL)
+               AND NOT ${raffleExcludedSql()}`,
+            [week.week]
+        )).rows;
+        // Nobody spun? Fall back to every member who hasn't won yet
+        const entrants = pool1.length ? pool1 : (await client.query(
+            `SELECT c.* FROM customers c WHERE c.id NOT IN (SELECT customer_id FROM raffle_winners WHERE customer_id IS NOT NULL)
+               AND NOT ${raffleExcludedSql()}`
+        )).rows;
+        if (!entrants.length) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ error: 'No eligible customers to draw from.' });
+        }
+
+        const pick = entrants[crypto.randomInt(entrants.length)];
+        const winner = (await client.query(
+            `INSERT INTO raffle_winners (week_number, customer_id, first_name, last_name, email, phone_number, method)
+             VALUES ($1, $2, $3, $4, $5, $6, 'draw') RETURNING *`,
+            [week.week, pick.id, pick.first_name, pick.last_name, pick.email, pick.phone_number]
+        )).rows[0];
+        await client.query('COMMIT');
+        console.log(`[Raffle] Week ${week.week} DRAWN by ${staff.name}: ${pick.first_name} ${pick.last_name} (from ${entrants.length} entrants)`);
+        res.json({ success: true, winner, entrants: entrants.length });
+    } catch (error) {
+        await client.query('ROLLBACK').catch(() => {});
+        console.error('Raffle draw error:', error);
+        res.status(500).json({ error: 'Failed to draw a winner' });
+    } finally {
+        client.release();
+    }
+});
+
+// Dashboard: record which gift card the winner picked and whether it was sent
+app.patch('/api/raffle/winners/:week', async (req, res) => {
+    const { prizeChoice, prizeSent } = req.body;
+    try {
+        const result = await pool.query(
+            `UPDATE raffle_winners
+             SET prize_choice = COALESCE($1, prize_choice), prize_sent = COALESCE($2, prize_sent)
+             WHERE week_number = $3 RETURNING *`,
+            [prizeChoice === undefined ? null : String(prizeChoice).slice(0, 255),
+             typeof prizeSent === 'boolean' ? prizeSent : null,
+             parseInt(req.params.week)]
+        );
+        if (!result.rows.length) return res.status(404).json({ error: 'No winner for that week yet' });
+        res.json({ success: true, winner: result.rows[0] });
+    } catch (error) {
+        console.error('Raffle winner update error:', error);
+        res.status(500).json({ error: 'Failed to update winner' });
     }
 });
 

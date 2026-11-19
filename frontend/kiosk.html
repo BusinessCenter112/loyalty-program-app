@@ -102,6 +102,28 @@
             margin-bottom: 12px;
         }
 
+        /* December raffle promo banner (phone screen) — shown until Dec 24, then hidden */
+        .raffle-banner {
+            display: none;
+            align-items: center;
+            gap: 14px;
+            text-align: left;
+            margin: -10px 0 24px;
+            padding: 14px 18px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(255,184,48,0.18), rgba(255,184,48,0.06));
+            border: 1px solid rgba(255,184,48,0.55);
+            box-shadow: 0 0 28px rgba(255,184,48,0.15);
+        }
+        .raffle-banner.show { display: flex; }
+        .raffle-banner-icon { font-size: 38px; line-height: 1; flex-shrink: 0; }
+        .raffle-banner-tag {
+            font-size: 11px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase;
+            color: #FFB830; margin-bottom: 3px;
+        }
+        .raffle-banner-title { font-size: 19px; font-weight: 800; color: #fff; line-height: 1.2; }
+        .raffle-banner-text { font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.4; margin-top: 3px; }
+
         .subtitle {
             color: rgba(255, 255, 255, 0.45);
             margin-bottom: 30px;
@@ -1871,6 +1893,92 @@
             50%  { transform: translateY(-30px) scale(1.05); opacity: 0.9; }
             100% { transform: translateY(0) scale(1); opacity: 0.7; }
         }
+
+        /* ── December Gift Card Raffle wheel ── */
+        .raffle-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 16px 60px; /* bottom space keeps the fine print clear of the buttons */
+            text-align: center;
+            color: #fff;
+            background: radial-gradient(ellipse at 50% 35%, #1d3a8a 0%, #0b1535 60%, #060c22 100%);
+            overflow: hidden;
+        }
+        .raffle-overlay.active { display: flex; animation: tierOverlayIn 0.35s ease-out; }
+        .raffle-eyebrow {
+            font-size: 14px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+            color: #FFB830; margin-bottom: 8px;
+        }
+        .raffle-title { font-size: clamp(24px, min(5vw, 4.6vh), 40px); font-weight: 900; line-height: 1.15; margin-bottom: 6px; max-width: 760px; }
+        .raffle-sub { font-size: 16px; color: rgba(255,255,255,0.65); margin-bottom: 20px; }
+        .raffle-wheel-wrap {
+            position: relative;
+            width: min(72vw, 46vh, 400px);
+            aspect-ratio: 1;
+            margin-bottom: 20px;
+        }
+        .raffle-pointer {
+            position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; z-index: 3;
+            border-left: 18px solid transparent; border-right: 18px solid transparent;
+            border-top: 34px solid #FFB830;
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5));
+        }
+        .raffle-wheel {
+            position: absolute; inset: 0; border-radius: 50%;
+            border: 8px solid #FFB830;
+            box-shadow: 0 0 40px rgba(65,105,225,0.6), inset 0 0 20px rgba(0,0,0,0.35);
+            background: conic-gradient(
+                #FFB830 0deg 45deg, #4169E1 45deg 90deg, #1a2a6c 90deg 135deg, #4169E1 135deg 180deg,
+                #FFB830 180deg 225deg, #4169E1 225deg 270deg, #1a2a6c 270deg 315deg, #4169E1 315deg 360deg);
+            transform: rotate(0deg);
+        }
+        .raffle-wheel.spinning { transition: transform 5.2s cubic-bezier(0.12, 0.6, 0.1, 1); }
+        .raffle-label {
+            position: absolute; inset: 0; pointer-events: none;
+        }
+        .raffle-label span {
+            position: absolute; top: 9%; left: 50%; transform: translateX(-50%);
+            font-size: clamp(12px, 2.4vw, 17px); font-weight: 900; letter-spacing: 0.5px;
+            white-space: nowrap; text-align: center; line-height: 1.15;
+        }
+        .raffle-label.prize span { color: #0b1535; }
+        .raffle-label.lose span { color: rgba(255,255,255,0.9); }
+        .raffle-hub {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 22%; aspect-ratio: 1; border-radius: 50%; z-index: 2;
+            background: #0b1535; border: 5px solid #FFB830;
+            display: flex; align-items: center; justify-content: center; font-size: clamp(22px, 5vw, 36px);
+        }
+        .raffle-spin-btn {
+            background: #FFB830; color: #0b1535; border: none; border-radius: 999px;
+            font-size: 24px; font-weight: 900; letter-spacing: 2px; padding: 16px 64px;
+            box-shadow: 0 6px 24px rgba(255,184,48,0.45); cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            width: auto; min-width: 240px; max-width: 90vw; display: inline-block;
+        }
+        .raffle-spin-btn:active { transform: scale(0.96); }
+        .raffle-spin-btn[disabled] { opacity: 0.4; }
+        .raffle-wheel-wrap { cursor: pointer; touch-action: none; -webkit-tap-highlight-color: transparent; }
+        .raffle-hint { margin-top: 12px; font-size: 15px; color: rgba(255,255,255,0.6); }
+        .raffle-skip {
+            margin-top: 10px; background: none; border: none; width: auto;
+            color: rgba(255,255,255,0.45); font-size: 14px; text-decoration: underline; cursor: pointer;
+        }
+        .raffle-result { display: none; max-width: 560px; }
+        .raffle-result.show { display: block; animation: tierOverlayIn 0.4s ease-out; }
+        .raffle-result-title { font-size: clamp(30px, 6vw, 48px); font-weight: 900; margin-bottom: 10px; }
+        .raffle-result.win .raffle-result-title { color: #FFB830; }
+        .raffle-result-body { font-size: 18px; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 20px; }
+        .raffle-fine {
+            position: absolute; bottom: 14px; left: 16px; right: 16px;
+            font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1.4;
+        }
     </style>
 </head>
 <body>
@@ -1921,6 +2029,29 @@
         <div id="goldTitleEl" class="gold-tier-title">GOLD TIER</div>
         <div id="goldSubtitleEl" class="gold-tier-subtitle">UNLOCKED</div>
         <div id="goldCongratsEl" class="gold-congrats-text"></div>
+    </div>
+
+    <!-- December Gift Card Raffle -->
+    <div id="raffleOverlay" class="raffle-overlay">
+        <div id="raffleConfetti" class="gold-confetti-container"></div>
+        <div class="raffle-eyebrow">🎄 December Giveaway 🎄</div>
+        <div class="raffle-title" id="raffleTitle">Spin to win a $25 gift card of your choice!</div>
+        <div class="raffle-sub" id="raffleSub">We're giving away gift cards to lucky members all December long!</div>
+        <div class="raffle-wheel-wrap" id="raffleWheelWrap">
+            <div class="raffle-pointer"></div>
+            <div class="raffle-wheel" id="raffleWheel"></div>
+            <div class="raffle-hub">🎁</div>
+        </div>
+        <button class="raffle-spin-btn" id="raffleSpinBtn">SPIN!</button>
+        <div class="raffle-hint" id="raffleHint">Tap or swipe the wheel to spin</div>
+        <button class="raffle-skip" id="raffleSkipBtn">Not you? Start over</button>
+        <div class="raffle-result" id="raffleResult">
+            <div class="raffle-result-title" id="raffleResultTitle"></div>
+            <div class="raffle-result-body" id="raffleResultBody"></div>
+            <button class="raffle-spin-btn" id="raffleContinueBtn">Continue</button>
+        </div>
+        <div class="raffle-fine">No purchase necessary. Open to Main Street Rewards members. One spin per day.
+            Winners are drawn at random throughout December. Winners are contacted by email to choose their gift card.</div>
     </div>
 
     <!-- ========== ATTRACT / IDLE SCREEN ========== -->
@@ -1975,6 +2106,31 @@
             </div>
             <h1>Web 2.0 Business Center<br>Rewards Club</h1>
             <p class="subtitle">Enter your phone number to get started</p>
+
+            <div class="raffle-banner" id="raffleBanner">
+                <div class="raffle-banner-icon">🎁</div>
+                <div>
+                    <div class="raffle-banner-tag" id="raffleBannerTag">🎄 Coming December 1st</div>
+                    <div class="raffle-banner-title">Spin to win a $25 gift card of your choice!</div>
+                    <div class="raffle-banner-text" id="raffleBannerText">Check in during December for a free spin each day you visit. Winners all month long!</div>
+                </div>
+            </div>
+            <script>
+                // Promo banner: "coming soon" until Dec 1, "happening now" Dec 1–24, hidden after (shop's time zone)
+                (function () {
+                    try {
+                        var today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+                        var forced = new URLSearchParams(location.search).get('bannerdate'); // e.g. ?bannerdate=2026-12-03 to preview
+                        if (forced) today = forced;
+                        if (today > '2026-12-24') return;
+                        if (today >= '2026-12-01') {
+                            document.getElementById('raffleBannerTag').textContent = '🎄 Happening now';
+                            document.getElementById('raffleBannerText').textContent = 'Check in today for your free spin. Winners all December long!';
+                        }
+                        document.getElementById('raffleBanner').classList.add('show');
+                    } catch (e) {}
+                })();
+            </script>
 
             <div style="width:100%;">
                 <input type="tel" id="phoneInput" placeholder="10-digit phone number" autocomplete="tel" inputmode="numeric" pattern="[0-9]*" maxlength="10">
@@ -2244,10 +2400,172 @@
             document.getElementById(screenId).classList.add('active');
         }
 
-        // Show success screen with auto-return timer
+        // Show success screen with auto-return timer.
+        // During the December raffle, the gift card wheel shows first (only if the server says this visit gets a spin).
         function showSuccessScreen() {
-            showScreen('successScreen');
-            startSuccessTimer();
+            runRaffle(() => {
+                showScreen('successScreen');
+                startSuccessTimer();
+            });
+        }
+
+        // ── December Gift Card Raffle ───────────────────────────
+        // The server decides win/lose the moment we ask; the wheel just lands on that result.
+        // Add ?raffletest=1 to the kiosk URL to preview the wheel any time (random result, nothing saved).
+        const RAFFLE_PREVIEW = new URLSearchParams(window.location.search).get('raffletest') === '1';
+        const RAFFLE_SEGMENTS = 8;                 // 45° each, segment 0 starts at the top
+        const RAFFLE_PRIZE_SEGMENTS = [0, 4];      // gold slices
+        let raffleRotation = 0;
+
+        (function buildRaffleWheel() {
+            const wheel = document.getElementById('raffleWheel');
+            for (let i = 0; i < RAFFLE_SEGMENTS; i++) {
+                const isPrize = RAFFLE_PRIZE_SEGMENTS.includes(i);
+                const label = document.createElement('div');
+                label.className = `raffle-label ${isPrize ? 'prize' : 'lose'}`;
+                label.style.transform = `rotate(${i * 45 + 22.5}deg)`;
+                label.innerHTML = isPrize ? '<span>$25<br>GIFT CARD</span>' : '<span>TRY<br>AGAIN</span>';
+                wheel.appendChild(label);
+            }
+        })();
+
+        // No timers here on purpose: the wheel only spins when the customer taps/swipes it,
+        // and the result stays up until they tap Continue (or "Start over").
+        async function runRaffle(done) {
+            if (!currentCustomer) return done();
+            const customerId = currentCustomer.id;
+            try {
+                const res = await fetch(`${API_URL}/raffle/eligible?customerId=${customerId}${RAFFLE_PREVIEW ? '&preview=1' : ''}`);
+                const check = await res.json();
+                if (!check.active || check.alreadySpunToday) return done();
+            } catch (e) {
+                return done(); // never block a check-in over the raffle
+            }
+
+            const overlay = document.getElementById('raffleOverlay');
+            const wheel = document.getElementById('raffleWheel');
+            const wheelWrap = document.getElementById('raffleWheelWrap');
+            const spinBtn = document.getElementById('raffleSpinBtn');
+            const hint = document.getElementById('raffleHint');
+            const skipBtn = document.getElementById('raffleSkipBtn');
+            const resultBox = document.getElementById('raffleResult');
+            const continueBtn = document.getElementById('raffleContinueBtn');
+            const name = currentCustomer.first_name || '';
+
+            // Reset from any previous spin (no animation while resetting)
+            wheel.classList.remove('spinning');
+            raffleRotation = raffleRotation % 360;
+            wheel.style.transform = `rotate(${raffleRotation}deg)`;
+            resultBox.className = 'raffle-result';
+            spinBtn.style.display = '';
+            spinBtn.disabled = false;
+            spinBtn.textContent = 'SPIN!';
+            hint.style.display = '';
+            skipBtn.style.display = '';
+            document.getElementById('raffleTitle').textContent = name ? `${name}, spin to win a $25 gift card of your choice!` : 'Spin to win a $25 gift card of your choice!';
+            document.getElementById('raffleSub').style.display = '';
+            wheelWrap.style.display = '';
+            overlay.classList.add('active');
+
+            let finished = false;
+            let spinning = false;
+            const close = () => {
+                overlay.classList.remove('active');
+                document.getElementById('raffleConfetti').innerHTML = '';
+                wheelWrap.onclick = wheelWrap.ontouchstart = wheelWrap.ontouchend = null;
+            };
+            const finish = () => {
+                if (finished) return;
+                finished = true;
+                close();
+                done();
+            };
+
+            const spin = async () => {
+                if (spinning || finished) return;
+                spinning = true;
+                spinBtn.disabled = true;
+                spinBtn.textContent = 'Spinning…';
+                hint.style.display = 'none';
+                skipBtn.style.display = 'none';
+
+                // Win/lose is decided by the server right now, at the moment of the spin
+                let result;
+                try {
+                    const res = await fetch(`${API_URL}/raffle/spin`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ customerId, preview: RAFFLE_PREVIEW })
+                    });
+                    result = await res.json();
+                } catch (e) {
+                    result = null;
+                }
+                if (!result || !result.active || result.alreadySpunToday) {
+                    // Something went wrong (or they already spun) — don't leave them stuck
+                    return finish();
+                }
+
+                // Pick a slice that matches the result, land somewhere inside it
+                const choices = [];
+                for (let i = 0; i < RAFFLE_SEGMENTS; i++) {
+                    if (RAFFLE_PRIZE_SEGMENTS.includes(i) === !!result.won) choices.push(i);
+                }
+                const seg = choices[Math.floor(Math.random() * choices.length)];
+                const center = seg * 45 + 22.5;
+                const jitter = (Math.random() - 0.5) * 30; // stay well inside the slice
+                const base = raffleRotation - (raffleRotation % 360);
+                raffleRotation = base + 360 * 6 + (360 - center) + jitter;
+
+                void wheel.offsetWidth; // let the reset apply before animating
+                wheel.classList.add('spinning');
+                wheel.style.transform = `rotate(${raffleRotation}deg)`;
+
+                setTimeout(() => {
+                    spinBtn.style.display = 'none';
+                    document.getElementById('raffleSub').style.display = 'none';
+                    document.getElementById('raffleTitle').textContent = '';
+                    const title = document.getElementById('raffleResultTitle');
+                    const body = document.getElementById('raffleResultBody');
+                    if (result.won) {
+                        title.textContent = '🎉 YOU WON! 🎉';
+                        body.innerHTML = `Congratulations${name ? ', ' + name.replace(/</g, '&lt;') : ''}! You won a <strong>$25 gift card of your choice</strong>.<br>We'll email you so you can pick which one you'd like.`
+                            + (result.preview ? '<br><em>(Preview — not a real win)</em>' : '');
+                        resultBox.className = 'raffle-result win show';
+                        playTierChime('gold');
+                        spawnGoldConfetti(document.getElementById('raffleConfetti'), 120);
+                    } else {
+                        title.textContent = 'Not this time!';
+                        body.innerHTML = 'Check in again on your next visit for another spin.<br>More winners all December long!'
+                            + (result.preview ? '<br><em>(Preview)</em>' : '');
+                        resultBox.className = 'raffle-result show';
+                    }
+                }, 5400);
+            };
+
+            // Spin on: the SPIN button, a tap on the wheel, or a swipe across the wheel
+            spinBtn.onclick = spin;
+            wheelWrap.onclick = spin;
+            let touchStart = null;
+            wheelWrap.ontouchstart = e => {
+                const t = e.touches[0];
+                touchStart = { x: t.clientX, y: t.clientY };
+            };
+            wheelWrap.ontouchend = e => {
+                if (!touchStart) return;
+                const t = e.changedTouches[0];
+                const moved = Math.hypot(t.clientX - touchStart.x, t.clientY - touchStart.y);
+                touchStart = null;
+                if (moved > 20) { e.preventDefault(); spin(); } // swipe (a plain tap is handled by onclick)
+            };
+            continueBtn.onclick = finish;
+            // Walked away before spinning? The next person can start over — no spin is used up
+            skipBtn.onclick = () => {
+                if (finished) return;
+                finished = true;
+                close();
+                resetToStart();
+            };
         }
 
         function startSuccessTimer() {
