@@ -1702,6 +1702,81 @@
             0%, 100% { opacity: 0.5; }
             50% { opacity: 1; }
         }
+        /* December raffle promo on the tap screen — big, gold, animated */
+        #tapToBegin .ttb-raffle {
+            display: none;
+            position: relative;
+            overflow: hidden;
+            width: min(620px, calc(100vw - 48px));
+            box-sizing: border-box;
+            margin: -24px 0 40px;
+            padding: 22px 28px 24px;
+            border-radius: 22px;
+            border: 3px solid #FFD54A;
+            background: linear-gradient(135deg, #b8860b 0%, #FFB830 45%, #FFD54A 60%, #e09a10 100%);
+            color: #1a1205;
+            text-align: center;
+            animation: ttbRaffleGlow 1.6s ease-in-out infinite;
+        }
+        #tapToBegin .ttb-raffle.show { display: block; }
+        #tapToBegin .ttb-raffle::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -60%;
+            width: 40%; height: 100%;
+            background: linear-gradient(100deg, transparent, rgba(255,255,255,0.55), transparent);
+            transform: skewX(-20deg);
+            animation: ttbRaffleShine 2.8s ease-in-out infinite;
+            pointer-events: none;
+        }
+        #tapToBegin .ttb-raffle-tag {
+            display: inline-block;
+            background: #b3001b;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 6px 16px;
+            border-radius: 999px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+        #tapToBegin .ttb-raffle-gift {
+            display: inline-block;
+            font-size: 44px;
+            vertical-align: middle;
+            animation: ttbGiftBounce 1.2s ease-in-out infinite;
+        }
+        #tapToBegin .ttb-raffle-title {
+            font-size: 34px;
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: -0.5px;
+            margin: 4px 0 10px;
+        }
+        #tapToBegin .ttb-raffle-text {
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.35;
+        }
+        @keyframes ttbRaffleGlow {
+            0%, 100% { box-shadow: 0 0 18px rgba(255,184,48,0.45), 0 0 0 0 rgba(255,213,74,0.5); transform: scale(1); }
+            50%      { box-shadow: 0 0 46px rgba(255,184,48,0.9), 0 0 0 10px rgba(255,213,74,0); transform: scale(1.03); }
+        }
+        @keyframes ttbRaffleShine {
+            0%   { left: -60%; }
+            60%, 100% { left: 130%; }
+        }
+        @keyframes ttbGiftBounce {
+            0%, 100% { transform: translateY(0) rotate(-6deg); }
+            50%      { transform: translateY(-8px) rotate(6deg); }
+        }
+        @media (max-height: 720px) {
+            #tapToBegin .ttb-logo { font-size: 48px; margin-bottom: 12px; }
+            #tapToBegin .ttb-raffle { margin: -32px 0 28px; padding: 16px 22px 18px; }
+            #tapToBegin .ttb-raffle-title { font-size: 28px; }
+        }
         #tapToBegin .ttb-powered {
             position: absolute;
             bottom: 24px;
@@ -2088,6 +2163,27 @@
         <div class="ttb-logo">📦</div>
         <div class="ttb-title">Web 2.0 Business Center<br>Rewards Club</div>
         <div class="ttb-sub">Track your drop-offs &amp; earn rewards</div>
+        <div class="ttb-raffle" id="ttbRaffle">
+            <div class="ttb-raffle-tag" id="ttbRaffleTag">🎄 Coming December 1st</div>
+            <div class="ttb-raffle-title"><span class="ttb-raffle-gift">🎁</span> Spin to WIN a $25 gift card of your choice!</div>
+            <div class="ttb-raffle-text" id="ttbRaffleText">Check in during December for a FREE spin each day you visit. Winners all month long!</div>
+        </div>
+        <script>
+            // Tap-screen raffle promo: same dates as the phone-screen banner (shop's time zone)
+            (function () {
+                try {
+                    var today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+                    var forced = new URLSearchParams(location.search).get('bannerdate'); // e.g. ?bannerdate=2026-12-03 to preview
+                    if (forced) today = forced;
+                    if (today > '2026-12-24') return;
+                    if (today >= '2026-12-01') {
+                        document.getElementById('ttbRaffleTag').textContent = '🎄 Happening now!';
+                        document.getElementById('ttbRaffleText').textContent = 'Check in today for your FREE spin. Winners all December long!';
+                    }
+                    document.getElementById('ttbRaffle').classList.add('show');
+                } catch (e) {}
+            })();
+        </script>
         <div class="ttb-cta">Tap anywhere to begin</div>
         <div class="ttb-powered">Powered by Main Street Rewards</div>
     </div>
